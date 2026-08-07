@@ -17,7 +17,8 @@ from dataclasses import dataclass
 
 from packitless import extractors
 from packitless.allocator import allocate
-from packitless.render import render
+from packitless.pricing import project
+from packitless.render import render_sections
 from packitless.salience import score_records
 from packitless.tokens import TokenCounter, get_counter
 from packitless.types import CompressedContext, Record
@@ -105,7 +106,23 @@ def compress(
         verbatim_floor=config.verbatim_floor,
         max_verbatim=config.max_verbatim,
     )
-    text = render(records, structure, plan, scores)
+    sections = render_sections(records, structure, plan, scores)
+    text = "\n".join(part for part in sections.values() if part)
+
+    # Never hand back more than you were given. On payloads with marginal
+    # structure the pattern list can cost more than the lines it replaces —
+    # pointed at this project's own README, an earlier build returned 22% MORE
+    # tokens than it received. A compressor that can inflate its input is
+    # worse than no compressor, because the caller has no reason to check.
+    raw_text = "\n".join(r.raw for r in records)
+    if counter.count(text) >= counter.count(raw_text):
+        return _passthrough(
+            records,
+            reason=(
+                f"compressing would not shrink this payload "
+                f"({extractor.name} at {confidence:.3f})"
+            ),
+        )
 
     dropped: list[str] = list(plan.notes)
     if plan.groups_omitted:
@@ -138,6 +155,15 @@ def compress(
             "guarantee": "lossless" if reconstructable else "lossy",
             "overrun": plan.overrun,
             "notes": structure.notes,
+            # Where the surviving tokens went. A percentage is a claim; this
+            # is the explanation behind it. Only the *output* sections are
+            # counted here — re-counting the whole input on every call would
+            # make compress() quadratic in payload size against a network
+            # tokenizer, and the caller already holds that number.
+            "sections": {
+                name: counter.count(part)
+                for name, part in sections.items() if part
+            },
         },
     )
 

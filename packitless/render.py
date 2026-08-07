@@ -26,14 +26,36 @@ def render(
     scores: dict[int, float],
 ) -> str:
     """Render a compressed payload as text for a prompt."""
+    return "\n".join(
+        text for text in render_sections(records, structure, plan, scores).values()
+        if text
+    )
+
+
+def render_sections(
+    records: list[Record],
+    structure: Structure,
+    plan: Plan,
+    scores: dict[int, float],
+) -> dict[str, str]:
+    """Render each part separately, so the caller can attribute its cost.
+
+    "We saved 98%" is a claim; "the legend cost 40 tokens, the patterns 310,
+    and the two records we refused to drop 90" is an explanation. Keeping the
+    sections addressable is what makes the second possible.
+    """
     by_index = {r.index: r for r in records}
-    lines: list[str] = []
+    sections: dict[str, list[str]] = {
+        "header": [], "legend": [], "patterns": [], "rows": [], "verbatim": [],
+    }
+    lines = sections["header"]
 
     lines.append(
         f"── {len(records):,} records · {len(structure.groups):,} patterns · "
         f"extractor={structure.extractor} ──"
     )
 
+    lines = sections["legend"]
     # Legend: emitted once, replacing per-record repetition. Complete by
     # construction — every dictionary entry a row can reference appears here.
     schemas = structure.legend.get("schemas") or {}
@@ -46,9 +68,7 @@ def render(
         for i, value in enumerate(values):
             lines.append(f"  @{i} {value}")
 
-    if schemas or dictionaries:
-        lines.append("")
-
+    lines = sections["patterns"]
     # The structural spine. Patterns are the compressed content for template
     # extraction, so they are emitted in full too.
     for group in plan.groups:
@@ -57,9 +77,9 @@ def render(
     if plan.groups_omitted:
         lines.append(f"(+{plan.groups_omitted:,} smaller patterns omitted for budget)")
 
+    lines = sections["rows"]
     # Compact per-record rows. "@n" refers to entry n of the column dictionary.
     if plan.rows:
-        lines.append("")
         for _, text in plan.rows:
             lines.append(f"  {text}")
 
@@ -69,9 +89,9 @@ def render(
             f"(payload truncated)"
         )
 
+    lines = sections["verbatim"]
     # Records preserved in full.
     if plan.verbatim:
-        lines.append("")
         lines.append("verbatim (highest salience):")
         for index in plan.verbatim:
             record = by_index.get(index)
@@ -80,7 +100,6 @@ def render(
             lines.append(f"  [{scores.get(index, 0.0):.2f}] {record.raw}")
 
     if plan.overrun:
-        lines.append("")
         lines.append("! budget exceeded to preserve must-keep records")
 
-    return "\n".join(lines)
+    return {name: "\n".join(body) for name, body in sections.items()}

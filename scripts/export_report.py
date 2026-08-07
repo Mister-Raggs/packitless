@@ -18,10 +18,11 @@ from packitless import extractors
 from packitless.allocator import allocate
 from packitless.compress import CompressConfig, compress
 from packitless.config import load_env
-from packitless.corpora import discover, load_lines_text
+from packitless.corpora import discover, load_jsonl_text, load_lines_text
 from packitless.extractors.lines import mask
 from packitless.fidelity import measure
 from packitless.integrations.flare import build_payload_verbose
+from packitless.pricing import RATES, project
 from packitless.render import render
 from packitless.salience import score_records
 from packitless.tokens import HeuristicCounter, get_counter
@@ -35,6 +36,122 @@ SCOPE_PROBES = {
     "prose (README)": ROOT / "README.md",
     "source code": ROOT / "packitless" / "compress.py",
 }
+
+# One real payload per usage scenario. Every figure on the scenarios section of
+# the page is measured from these files at build time — none is illustrative.
+SCENARIOS = [
+    {
+        "key": "agent",
+        "title": "An agent reading tool output",
+        "blurb": "A coding agent runs a build, a test suite, or kubectl logs "
+                 "and pipes thousands of near-identical lines into its context "
+                 "window. This is a real installer log — the shape of output an "
+                 "agent drowns in every day.",
+        "surface": "MCP tool — the model decides to call it",
+        "call": "compress_payload(text, budget_tokens=400)",
+        "path": Path("/var/log/install.log"),
+        "budget": 400,
+        "tail": 3000,
+    },
+    {
+        "key": "triage",
+        "title": "Incident triage on a live service",
+        "blurb": "Flare summarises log anomalies with an LLM. It truncated each "
+                 "incident to 50 lines to control cost — a budget in the wrong "
+                 "unit. The adapter reads every line for a fraction of the spend.",
+        "surface": "Python library — one call in the prompt builder",
+        "call": "build_payload(incident.log_lines, budget_tokens=800)",
+        "path": ROOT / "corpora" / "hdfs_demo.log",
+        "budget": 800,
+    },
+    {
+        "key": "records",
+        "title": "Batch processing structured records",
+        "blurb": "Classifying or extracting over database rows and API responses, "
+                 "where every record repeats the same keys. Schema collapse is "
+                 "reversible, so nothing is given up.",
+        "surface": "Python library, with require_lossless",
+        "call": "compress(records, CompressConfig(require_lossless=True))",
+        "path": ROOT / "corpora" / "jobs.jsonl",
+        "budget": None,
+        "require_lossless": True,
+    },
+    {
+        "key": "pipeline",
+        "title": "A shared multi-service log pipeline",
+        "blurb": "One stream carrying several formats at once. Each record is "
+                 "routed to the extractor that understands it, so structured "
+                 "events are not shredded by a line templater.",
+        "surface": "CLI — works with any tool, in any language",
+        "call": "journalctl -u api | packitless --budget 800 --stats",
+        "path": ROOT / "corpora" / "mixed.log",
+        "budget": 800,
+    },
+    {
+        "key": "unknown",
+        "title": "A log format nobody has seen",
+        "blurb": "No tuning, no configuration, no schema. This is a macOS "
+                 "WiFi driver log the tool has never been shown.",
+        "surface": "CLI",
+        "call": "packitless --budget 600 --stats < /var/log/install.log",
+        "path": Path("/var/log/wifi.log"),
+        "budget": 600,
+        "tail": 4000,
+    },
+    {
+        "key": "decline",
+        "title": "Something it should refuse",
+        "blurb": "Prose has no exploitable repetition. Every extractor scores "
+                 "near zero and the payload passes through byte-for-byte — "
+                 "knowing when not to act is part of being safe to adopt.",
+        "surface": "Any — the answer is the same everywhere",
+        "call": "packitless --explain < README.md",
+        "path": ROOT / "README.md",
+        "budget": None,
+    },
+]
+
+
+def scenario_section(spec, counter) -> dict | None:
+    """Measure one usage scenario against a real payload."""
+    path = spec["path"]
+    if not path.exists():
+        return None
+    text = path.read_text(encoding="utf-8", errors="replace")
+    if spec.get("tail"):
+        text = "\n".join(text.splitlines()[-spec["tail"]:])
+    if not text.strip():
+        return None
+
+    loader = load_jsonl_text if text.lstrip()[:1] == "{" else load_lines_text
+    records = loader(text)
+    if len(records) < 20:
+        return None
+
+    ctx = compress(
+        records,
+        CompressConfig(
+            name=spec["key"], budget_tokens=spec.get("budget"),
+            require_lossless=spec.get("require_lossless", False),
+        ),
+        counter,
+    )
+    before, after = counter.count(text), counter.count(ctx.text)
+    return {
+        "key": spec["key"], "title": spec["title"], "blurb": spec["blurb"],
+        "surface": spec["surface"], "call": spec["call"],
+        "source": path.name,
+        "records": len(records),
+        "tokens_before": before,
+        "tokens_after": after,
+        "saved_pct": round(100 * (before - after) / before, 1) if before else 0.0,
+        "extractor": ctx.stats.get("extractor"),
+        "guarantee": ctx.stats.get("guarantee"),
+        "truncated": ctx.stats.get("truncated", False),
+        "patterns": ctx.groups,
+        "sections": ctx.stats.get("sections", {}),
+        "cost": _cost_block(before, after),
+    }
 
 
 def corpus_section(corpus, counter) -> dict:
@@ -87,6 +204,18 @@ def corpus_section(corpus, counter) -> dict:
     }
 
 
+def _cost_block(before: int, after: int, calls: int = 1_000) -> dict:
+    """Cost of one payload at a stated rate, projected over `calls` calls."""
+    s = project(before, after, calls=calls)
+    return {
+        "model": s.model, "input_rate_per_mtok": s.input_rate, "calls": calls,
+        "usd_before": round(s.cost_before, 2),
+        "usd_after": round(s.cost_after, 2),
+        "usd_saved": round(s.saved, 2),
+        "saved_pct": round(s.saved_pct, 1),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exact", action="store_true")
@@ -120,6 +249,11 @@ def main() -> int:
             "scores": {n: round(s, 4) for n, s in extractors.sniff_all(records)},
         })
     report["extractor_matrix"] = matrix
+
+    report["scenarios"] = [
+        row for spec in SCENARIOS
+        if (row := scenario_section(spec, counter)) is not None
+    ]
 
     # Flare adapter: what the host application spends today vs with the adapter.
     hdfs = next((c for c in corpora if c.name == "hdfs"), None)
@@ -174,6 +308,10 @@ def main() -> int:
             }
             for level, rs in by_level.items()
         ]
+
+    report["rates"] = {m: {"input": i, "output": o} for m, (i, o) in RATES.items()}
+    if hasattr(counter, "save"):
+        report["token_cache_size"] = counter.save()
 
     out = ROOT / "results" / "report.json"
     out.parent.mkdir(parents=True, exist_ok=True)

@@ -13,9 +13,11 @@ derived from a character-length ratio.
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import os
 import re
+from pathlib import Path
 from typing import Protocol
 
 logger = logging.getLogger(__name__)
@@ -40,6 +42,13 @@ _PIECES_PER_TOKEN = 1.32
 # choice, not a formality. Sonnet 5 is the current tier and the natural
 # migration target for anything pinned to an older Sonnet.
 DEFAULT_COUNT_MODEL = "claude-sonnet-5"
+
+# Exact counts are measured once and committed, so anyone can reproduce every
+# published number with no API key, no credit, and no network — and get the
+# same answer every time. Without this, "measured with the real tokenizer"
+# means "you had to pay to check", which is not reproducible in any useful
+# sense.
+CACHE_PATH = Path(__file__).resolve().parent.parent / "results" / "token_cache.json"
 
 # Tried in order if the configured model is unavailable to the caller's key.
 _COUNT_MODEL_FALLBACKS = (
@@ -79,12 +88,24 @@ class AnthropicCounter:
 
     name = "anthropic"
 
-    def __init__(self, model: str = DEFAULT_COUNT_MODEL) -> None:
+    def __init__(self, model: str = DEFAULT_COUNT_MODEL,
+                 cache_path: Path | None = CACHE_PATH) -> None:
         import anthropic  # imported lazily so the heuristic path needs no SDK
 
         self._client = anthropic.Anthropic()
-        self._cache: dict[str, int] = {}
+        self._cache_path = cache_path
+        self._cache: dict[str, int] = _load_cache(cache_path)
+        self._degraded: HeuristicCounter | None = None
+        self._dirty = False
         self.model = self._resolve_model(model)
+
+    def save(self) -> int:
+        """Persist newly measured counts. Returns the cache size."""
+        if self._dirty and self._cache_path is not None:
+            self._cache_path.parent.mkdir(parents=True, exist_ok=True)
+            self._cache_path.write_text(json.dumps(self._cache, indent=0, sort_keys=True))
+            self._dirty = False
+        return len(self._cache)
 
     def _resolve_model(self, preferred: str) -> str:
         """Pick a counting model this key can actually count with.
@@ -126,17 +147,72 @@ class AnthropicCounter:
     def count(self, text: str) -> int:
         if not text:
             return 0
+        if self._degraded is not None:
+            return self._degraded.count(text)
+
         key = hashlib.sha256(text.encode("utf-8")).hexdigest()
         if key not in self._cache:
-            resp = self._client.messages.count_tokens(
-                model=self.model,
-                messages=[{"role": "user", "content": text}],
-            )
+            try:
+                resp = self._client.messages.count_tokens(
+                    model=self.model,
+                    messages=[{"role": "user", "content": text}],
+                )
+            except Exception as exc:
+                # A long sweep should not die on a transient 500 or an
+                # exhausted balance halfway through. Degrade once, say so
+                # loudly, and keep the run comparable from here on — mixing
+                # exact and approximate counts in one report would be worse
+                # than being uniformly approximate.
+                logger.warning(
+                    "token counting failed (%s); falling back to the heuristic "
+                    "for the remainder of this run — counts are approximate",
+                    exc,
+                )
+                self._degraded = HeuristicCounter()
+                self.name = "heuristic (degraded from anthropic)"
+                return self._degraded.count(text)
             self._cache[key] = resp.input_tokens
+            self._dirty = True
         return self._cache[key]
 
 
-def get_counter(prefer_api: bool = True) -> TokenCounter:
+class CachedCounter:
+    """Replays committed exact counts; deterministic and offline.
+
+    Falls back to the heuristic for text it has never seen, and says so, so a
+    stale cache degrades visibly rather than silently reporting the wrong
+    number for new content.
+    """
+
+    name = "cached (exact, replayed)"
+
+    def __init__(self, cache_path: Path | None = CACHE_PATH) -> None:
+        self._cache = _load_cache(cache_path)
+        self._fallback = HeuristicCounter()
+        self.misses = 0
+
+    def count(self, text: str) -> int:
+        if not text:
+            return 0
+        key = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        if key in self._cache:
+            return self._cache[key]
+        self.misses += 1
+        return self._fallback.count(text)
+
+
+def _load_cache(path: Path | None) -> dict[str, int]:
+    """Read the committed count cache, tolerating absence or corruption."""
+    if path is None or not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning("token cache unreadable (%s) — starting empty", exc)
+        return {}
+
+
+def get_counter(prefer_api: bool = True, allow_cache: bool = True) -> TokenCounter:
     """Return the best available counter.
 
     Falls back to the heuristic when there is no API key or the SDK is missing,
@@ -145,6 +221,8 @@ def get_counter(prefer_api: bool = True) -> TokenCounter:
     if prefer_api and os.environ.get("ANTHROPIC_API_KEY"):
         try:
             return AnthropicCounter()
-        except Exception as exc:  # SDK missing, bad key, no network
-            logger.warning("Falling back to heuristic token counting: %s", exc)
+        except Exception as exc:  # SDK missing, bad key, no network, no credit
+            logger.warning("Falling back from live token counting: %s", exc)
+    if allow_cache and CACHE_PATH.exists():
+        return CachedCounter()
     return HeuristicCounter()

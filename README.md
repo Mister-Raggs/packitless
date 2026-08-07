@@ -19,6 +19,23 @@ kubectl logs deploy/api --tail=5000 | packitless --budget 800 --stats
 # 5,000 records · 34 patterns · 147,815 → 1,724 tok (98.8% ↓) · lines/0.963 · lossy
 ```
 
+## Where it earns its keep
+
+Six real payloads, measured at build time. Input tokens only, priced at $3.00 per
+million (claude-sonnet-5 list), projected over 1,000 calls:
+
+| Scenario | Payload | Saved | Per 1k calls |
+|---|---|---|---|
+| Agent reading build output | installer log | **99.8%** | $667 → $1.31 |
+| Incident triage (Flare) | HDFS logs | **99.5%** | $443 → $2.39 |
+| Batch record processing | JSON rows | 27.0% **lossless** | $1,631 → $1,191 |
+| Multi-service pipeline | mixed stream | 95.8% | $823 → $35 |
+| Unseen log format | WiFi driver | **99.9%** | $1,384 → $1.89 |
+| Prose | this README | **0% — declines** | unchanged |
+
+Exact token counts are cached and committed, so every figure reproduces offline
+with no API key.
+
 ## Measured results
 
 Real tokenizer (`claude-sonnet-5`), no budget cap, so nothing is truncated:
@@ -74,6 +91,11 @@ more, because it re-sent the same 18,481-token payload on every call.
 If a budget forces records or patterns out of the output, the result is
 labelled `truncated` and says how many were dropped. Compression that silently
 discards data is indistinguishable from a bug.
+
+It also **never returns more tokens than it was given**. Pointed at this README
+an earlier build returned 22% *more* — prose scores just above the confidence
+floor, so it compressed, and the pattern list cost more than the lines it
+replaced. It now detects that and passes through.
 
 ## How it works
 

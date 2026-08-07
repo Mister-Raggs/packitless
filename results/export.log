@@ -1,0 +1,15 @@
+3,952 of 4,000 records dropped for budget — payload is truncated, not merely compressed
+3,982 of 4,000 records dropped for budget — payload is truncated, not merely compressed
+3,990 of 4,000 records dropped for budget — payload is truncated, not merely compressed
+3,996 of 4,000 records dropped for budget — payload is truncated, not merely compressed
+3,998 of 4,000 records dropped for budget — payload is truncated, not merely compressed
+975 of 1,008 records dropped for budget — payload is truncated, not merely compressed
+1,002 of 1,008 records dropped for budget — payload is truncated, not merely compressed
+1,008 of 1,008 records dropped for budget — payload is truncated, not merely compressed
+1,008 of 1,008 records dropped for budget — payload is truncated, not merely compressed
+1,008 of 1,008 records dropped for budget — payload is truncated, not merely compressed
+1,008 of 1,008 records dropped for budget — payload is truncated, not merely compressed
+wrote /Users/raghavkachroo/Desktop/SnowFlake Hackathon/results/report.json (26 KB)
+  hdfs     147,815 tok  lines      13 patterns  lossy
+  jobs     543,687 tok  jsonrec     1 patterns  lossless
+  mixed    274,428 tok  hybrid     14 patterns  lossy

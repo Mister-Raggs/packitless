@@ -2,156 +2,169 @@
 
 **Track 1 · Cost of Intelligence**
 
-Repo: `github.com/Mister-Raggs/packitless` · Results page: *(artifact link — share before submitting)*
+Repo: `github.com/Mister-Raggs/packitless` · Results page: *(artifact link — **share it before submitting**)*
 
-Timing is tight. Six slides, ~30 seconds each. The numbers are the argument; don't
-narrate the architecture.
-
----
-
-## 1 — The problem (0:00–0:25)
-
-> Machine-generated text is mostly repetition, and you pay full token price for every
-> copy of it.
-
-Show the treemap. Two thousand HDFS log lines, **zero exact duplicates** — so
-deduplication saves nothing — collapsing into 13 templates.
-
-**Line to land:** *"Nothing here is a duplicate. Everything here is a repeat."*
-
-That distinction is the whole product, and it kills "why not just dedupe?" before
-anyone asks it.
+Six beats, ~30 seconds each. Lead with where it fits and what it saves; the evidence is
+there to be pointed at, not walked through.
 
 ---
 
-## 2 — What it does (0:25–0:55)
+## 1 — The pitch (0:00–0:25)
 
-Before/after panel, real output on screen.
+> **Machine-generated text is mostly repetition, and you pay full price for every copy.**
+
+Logs, traces, events, test output, database rows. packitless extracts the structure,
+spends a token budget on what carries signal, and tells you what it gave up to get there.
+
+Open on the money figure:
+
+> **"$3,718 saved per thousand calls, across six real workloads, at list price."**
+
+Then immediately ground it — that's input tokens only, priced at $3/MTok, and every
+number on the page is measured rather than modelled.
+
+---
+
+## 2 — Six places it fits (0:25–1:00)
+
+The scenario grid. Don't read all six — point at the spread and land three:
+
+| Scenario | Payload | Saved | Per 1k calls |
+|---|---|---|---|
+| Agent reading build output | installer log | **99.8%** | $667 → $1.31 |
+| Incident triage (Flare, production) | HDFS logs | **99.5%** | $443 → $2.39 |
+| Batch record processing | JSON rows | 27.0% *(lossless)* | $1,631 → $1,191 |
+| Multi-service pipeline | mixed stream | 95.8% | $823 → $35 |
+| A log format nobody has seen | WiFi driver | **99.9%** | $1,384 → $1.89 |
+| Prose | this README | **0%** — declines | unchanged |
+
+**The three to say out loud:**
+
+- *"An agent reading build output: 99.8%."* — the one this audience feels.
+- *"Batch records: only 27%, but it's **lossless** — the original is reconstructable."*
+  Naming the weakest number yourself is what makes the others credible.
+- *"Prose: zero. It declines."* — knowing when not to act is what makes it safe to adopt.
+
+---
+
+## 3 — Where the savings come from (1:00–1:35)
+
+Treemap. Two thousand HDFS lines, **zero exact duplicates** — deduplication saves nothing —
+collapsing into 13 templates.
+
+> *"Nothing here is a duplicate. Everything here is a repeat."*
+
+That distinction kills "why not just dedupe?" before anyone asks it.
+
+Then the breakdown bar — every surviving token, accounted for:
 
 ```
-── 2,000 records · 13 patterns · extractor=lines ──
-[T1] ×1,149   081109 <*> INFO dfs.DataNode$DataXceiver: Receiving block <*> src: <*> dest: <*>
-[T2] ×404     081109 <*> INFO dfs.DataNode$DataXceiver: <*> Served block <*> to <*>
-...
-verbatim (highest salience):
-  [0.97] 081109 ... ERROR DataXceiver: Exception in receiveBlock ... Broken pipe
+patterns   341 tok   the structural spine
+verbatim    78 tok   records we refused to drop
+header      29 tok
+           ─────
+           438 tok   from 222,336
 ```
 
-**147,815 → 1,724 tokens. 98.8%.**
+> *"98% saved is a claim. This is the explanation."*
 
-Point at the verbatim line: the interface is a **token budget**, not a compression
-ratio, because real systems have context windows and cost ceilings — not
-ratio targets. Records you flag as critical survive even if that overruns the budget.
-
----
-
-## 3 — Does it hurt the answer? (0:55–1:30)
-
-Frontier chart. Judge always sees the **uncompressed** logs as ground truth, and scores
-every candidate for an incident **side by side in one call**, so it can say "this one
-dropped the disk failure" rather than guessing an integer in isolation.
-
-**94% fewer tokens ranks level with no compression at all** — mean 4.17 vs 4.08, mean
-rank 2.50 vs 2.25. It even wins on *specificity* (4.25 vs 3.88): templates plus counts
-plus the salient lines surface structure that an 18,000-token raw dump buries.
-
-Rank ordering is the clean signal, and it's monotonic:
-**2.25 → 2.50 → 3.62 → 4.12 → 4.88.**
-
-**Say the caveat out loud:** sd ≈ 0.5 at n=8, so baseline-vs-compressed is a *tie*, not
-a win. The drop at 200 tokens is ~1.8 sd — real, not decisive.
-
-**And say this too:** the first version of this experiment scored each summary alone and
-reported the whole curve as flat noise. The instrument was the problem, not the
-compressor. The result that flattered us was the one that was wrong.
+The interface is a **token budget**, not a compression ratio, because real systems have
+context windows and cost ceilings — not ratio targets.
 
 ---
 
-## 4 — The number that isn't real (1:30–2:00)
+## 4 — What it costs you in quality (1:35–2:05)
 
-This is the slide that separates the project from a benchmark.
+Judge always sees the **uncompressed** logs as ground truth, and rates every candidate
+for an incident **side by side in one call**.
+
+**94% fewer tokens ranks level with no compression at all** — 4.17 vs 4.08, rank 2.50 vs
+2.25. It wins on *specificity* (4.25 vs 3.88): templates plus counts plus the salient
+lines surface structure an 18,000-token raw dump buries.
+
+**Say the caveat:** sd ≈ 0.5 at n=8, so that's a *tie*, not a win. Below ~800 tokens
+quality genuinely degrades and the chart shows it.
+
+**And say this:** the first version of this experiment scored each summary alone and
+reported the curve as flat noise. The instrument was the problem, not the compressor —
+the flattering result was the wrong one.
+
+---
+
+## 5 — When our own number is a lie (2:05–2:35)
+
+The slide that separates this from a benchmark.
 
 | corpus | budget | saved | records kept |
 |---|---|---|---|
 | jobs | 200 | **90.5%** | **0.001** |
 
-> "Our own tool reports 90% saved here. It got that by throwing away 99.9% of the
-> records. The token count calls it a triumph."
+> *"Our own tool reports 90% saved here. It got that by throwing away 99.9% of the
+> records. The token count calls it a triumph."*
 
-Free deterministic fidelity metrics catch it — no API key, no LLM, runs on every
-commit. And `critical_recall` is **1.000 across every corpus and every budget**: the
-must-keep guarantee is verified, not asserted.
+Deterministic fidelity checks catch it — no API key, no LLM, on every commit.
+**Critical recall is 1.000 in every row:** flagged records survive whatever the budget,
+and the allocator overruns rather than drop one.
 
-The lossless tier goes further — 24,000 fields rebuilt exactly from the compressor's
-own output.
+Two more guarantees worth a sentence each:
 
----
-
-## 5 — Does it generalise? (2:00–2:30)
-
-Two answers, both measured.
-
-**Unseen logs:** five formats pulled off a laptop, no tuning — Apple installer, WiFi
-driver, APFS check, disc-recording daemon, a game client. **Median 94.6%.** Weakest
-result shown, not trimmed.
-
-**Where it declines:** point at the heatmap. Prose and source code score ~0 and pass
-through *untouched*. Selection is a compressibility estimate, not format detection, so
-it fails safe instead of mangling text it doesn't understand.
-
-If there's a laptop in the room: `pytest -v | packitless --stats` live. Unfakeable.
+- **Lossless tier** — 24,000 fields rebuilt exactly from the compressor's own output.
+- **Never inflates** — pointed at our own README an earlier build returned *22% more*
+  tokens than it received. Now it detects that and passes through. Caught by a test.
 
 ---
 
-## 6 — It's real (2:30–3:00)
+## 6 — How you'd actually use it (2:35–3:00)
 
-Dropped into Flare, a production log-triage service:
+Three surfaces, one function underneath:
 
-| | tokens | lines the model sees |
-|---|---|---|
-| Flare today | 4,173 | 50 of 250 |
-| packitless @ 800 | **786** | **all 250** |
+```python
+compress(records, CompressConfig(budget_tokens=800))     # library
+```
+```bash
+kubectl logs deploy/api | packitless --budget 800 --stats  # any tool, any language
+```
+```
+MCP: analyse → compress_payload                            # the agent decides
+```
 
-> "81% fewer tokens on five times the data. Flare truncates to 50 lines to control
-> cost — that's a budget in the wrong unit."
-
-Close on the integration surfaces: a library call, a stdin filter that works with any
-tool in any language, and an extractor interface where a new payload format is three
-methods.
+Close on adoption cost: **no API key, no service, no network.** Compression never makes
+a model call. Adding a new payload format is three methods.
 
 ---
 
 ## If asked
 
 **"Isn't this just Drain / log parsing?"**
-Drain is one extractor. The system is the budget allocator, the salience guarantee,
-the per-record router for mixed streams, and the fidelity metrics that tell you when
-a number is a lie.
+Drain is one extractor. The system is the budget allocator, the salience guarantee, the
+per-record router for mixed streams, and the checks that tell you when a number is a lie.
 
-**"What about non-log data?"**
-The JSON tier is non-log and lossless — 27%, round-trip verified. The predictor isn't
-"is it a log", it's *structure* (which mechanism applies) and *cardinality* (what ratio
-you get). `jobs` has perfect structure and still only reaches 27%, because its values
-are high-cardinality.
+**"What predicts how well it does?"**
+Not "is it a log". *Structure* picks the mechanism; *cardinality* sets the ratio. The
+JSON corpus has perfect structure — one schema over 4,000 records — and still reaches
+only 27%, because its values are high-cardinality.
 
-**"What did it cost to build the evidence?"**
+**"Are the numbers reproducible?"**
+Exact token counts are cached and committed, so anyone reproduces every figure offline
+with no key. `pytest tests/` runs the guarantees; `fidelity_sweep.py` runs the free
+frontier.
+
+**"What did the evidence cost?"**
 The first sweep cost ~$4, and most of that was our own mistake — it re-sent the same
 18,481-token payload 48 times without caching. A token-reduction tool measured by a
-harness that ignored the obvious token optimisation. Batching the judge cut that ~5x
-*and* made it a sharper instrument. The free fidelity tier means most runs now cost
-nothing at all.
+harness that ignored the obvious token optimisation. Batching the judge cut it ~5× and
+made it sharper.
 
 **"What's not done?"**
-Larger n on the frontier — 8 incidents is what a 2,000-line corpus yields at 250 lines
-each. An MCP server. Per-record routing landed today and took the mixed stream from 835
-garbage patterns to 14 clean ones.
+Larger n on the frontier — 8 incidents is what a 2,000-line corpus yields. Streaming
+compression for unbounded inputs. A hosted endpoint for the paste box, which is
+deliberately client-side so pasted production logs never leave the browser.
 
 ---
 
 ## Do not
 
-- Don't walk through the architecture diagram. Nobody scores it.
-- Don't claim a knee in the frontier. There isn't one at this sample size.
-- Don't show a raw dollar total — per-incident spend is cents. Quote a rate
-  (cost per 1,000 incidents) or a percentage.
-- Don't run anything live that needs the network.
+- Don't walk the architecture diagram. Nobody scores it.
+- Don't quote a raw dollar total — always per 1,000 calls, at a stated rate.
+- Don't claim a knee in the frontier. There's a slope, not a knee, at this sample size.
+- Don't run anything live that needs the network. The paste box is local; use that.

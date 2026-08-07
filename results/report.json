@@ -156,10 +156,10 @@
         "[T11] \u00d72       081109 <*> 19 INFO dfs.DataNode: <*> Starting thread to transfer block blk_-1608999687919862906 to <*> <*>",
         "[T12] \u00d71       081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010",
         "[T13] \u00d71       081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010",
-        "",
         "verbatim (highest salience):",
         "  [0.54] 081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010",
-        "  [0.54] 081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010"
+        "  [0.54] 081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010",
+        "  [0.51] 081109 203521 19 INFO dfs.DataNode: 10.250.14.224:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.215.16:50010, 10.251.71.193:50010"
       ]
     },
     {
@@ -459,7 +459,7 @@
     {
       "payload": "prose (README)",
       "scores": {
-        "lines": 0.093,
+        "lines": 0.1099,
         "jsonrec": 0.0,
         "hybrid": 0.0
       }
@@ -467,9 +467,189 @@
     {
       "payload": "source code",
       "scores": {
-        "lines": 0.0534,
+        "lines": 0.0705,
         "jsonrec": 0.0,
         "hybrid": 0.0
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "key": "agent",
+      "title": "An agent reading tool output",
+      "blurb": "A coding agent runs a build, a test suite, or kubectl logs and pipes thousands of near-identical lines into its context window. This is a real installer log \u2014 the shape of output an agent drowns in every day.",
+      "surface": "MCP tool \u2014 the model decides to call it",
+      "call": "compress_payload(text, budget_tokens=400)",
+      "source": "install.log",
+      "records": 3000,
+      "tokens_before": 222336,
+      "tokens_after": 438,
+      "saved_pct": 99.8,
+      "extractor": "lines",
+      "guarantee": "lossy",
+      "truncated": true,
+      "patterns": 201,
+      "sections": {
+        "header": 29,
+        "patterns": 341,
+        "verbatim": 78
+      },
+      "cost": {
+        "model": "claude-sonnet-5",
+        "input_rate_per_mtok": 3.0,
+        "calls": 1000,
+        "usd_before": 667.01,
+        "usd_after": 1.31,
+        "usd_saved": 665.69,
+        "saved_pct": 99.8
+      }
+    },
+    {
+      "key": "triage",
+      "title": "Incident triage on a live service",
+      "blurb": "Flare summarises log anomalies with an LLM. It truncated each incident to 50 lines to control cost \u2014 a budget in the wrong unit. The adapter reads every line for a fraction of the spend.",
+      "surface": "Python library \u2014 one call in the prompt builder",
+      "call": "build_payload(incident.log_lines, budget_tokens=800)",
+      "source": "hdfs_demo.log",
+      "records": 2000,
+      "tokens_before": 147815,
+      "tokens_after": 797,
+      "saved_pct": 99.5,
+      "extractor": "lines",
+      "guarantee": "lossy",
+      "truncated": true,
+      "patterns": 13,
+      "sections": {
+        "header": 29,
+        "patterns": 773
+      },
+      "cost": {
+        "model": "claude-sonnet-5",
+        "input_rate_per_mtok": 3.0,
+        "calls": 1000,
+        "usd_before": 443.44,
+        "usd_after": 2.39,
+        "usd_saved": 441.05,
+        "saved_pct": 99.5
+      }
+    },
+    {
+      "key": "records",
+      "title": "Batch processing structured records",
+      "blurb": "Classifying or extracting over database rows and API responses, where every record repeats the same keys. Schema collapse is reversible, so nothing is given up.",
+      "surface": "Python library, with require_lossless",
+      "call": "compress(records, CompressConfig(require_lossless=True))",
+      "source": "jobs.jsonl",
+      "records": 4000,
+      "tokens_before": 543687,
+      "tokens_after": 396863,
+      "saved_pct": 27.0,
+      "extractor": "jsonrec",
+      "guarantee": "lossless",
+      "truncated": false,
+      "patterns": 1,
+      "sections": {
+        "header": 32,
+        "legend": 70535,
+        "patterns": 36,
+        "rows": 325188,
+        "verbatim": 1092
+      },
+      "cost": {
+        "model": "claude-sonnet-5",
+        "input_rate_per_mtok": 3.0,
+        "calls": 1000,
+        "usd_before": 1631.06,
+        "usd_after": 1190.59,
+        "usd_saved": 440.47,
+        "saved_pct": 27.0
+      }
+    },
+    {
+      "key": "pipeline",
+      "title": "A shared multi-service log pipeline",
+      "blurb": "One stream carrying several formats at once. Each record is routed to the extractor that understands it, so structured events are not shredded by a line templater.",
+      "surface": "CLI \u2014 works with any tool, in any language",
+      "call": "journalctl -u api | packitless --budget 800 --stats",
+      "source": "mixed.log",
+      "records": 3000,
+      "tokens_before": 274428,
+      "tokens_after": 11575,
+      "saved_pct": 95.8,
+      "extractor": "hybrid",
+      "guarantee": "lossy",
+      "truncated": true,
+      "patterns": 14,
+      "sections": {
+        "header": 31,
+        "legend": 10813,
+        "patterns": 718,
+        "rows": 28
+      },
+      "cost": {
+        "model": "claude-sonnet-5",
+        "input_rate_per_mtok": 3.0,
+        "calls": 1000,
+        "usd_before": 823.28,
+        "usd_after": 34.73,
+        "usd_saved": 788.56,
+        "saved_pct": 95.8
+      }
+    },
+    {
+      "key": "unknown",
+      "title": "A log format nobody has seen",
+      "blurb": "No tuning, no configuration, no schema. This is a macOS WiFi driver log the tool has never been shown.",
+      "surface": "CLI",
+      "call": "packitless --budget 600 --stats < /var/log/install.log",
+      "source": "wifi.log",
+      "records": 4000,
+      "tokens_before": 461391,
+      "tokens_after": 630,
+      "saved_pct": 99.9,
+      "extractor": "lines",
+      "guarantee": "lossy",
+      "truncated": true,
+      "patterns": 49,
+      "sections": {
+        "header": 29,
+        "patterns": 558,
+        "verbatim": 53
+      },
+      "cost": {
+        "model": "claude-sonnet-5",
+        "input_rate_per_mtok": 3.0,
+        "calls": 1000,
+        "usd_before": 1384.17,
+        "usd_after": 1.89,
+        "usd_saved": 1382.28,
+        "saved_pct": 99.9
+      }
+    },
+    {
+      "key": "decline",
+      "title": "Something it should refuse",
+      "blurb": "Prose has no exploitable repetition. Every extractor scores near zero and the payload passes through byte-for-byte \u2014 knowing when not to act is part of being safe to adopt.",
+      "surface": "Any \u2014 the answer is the same everywhere",
+      "call": "packitless --explain < README.md",
+      "source": "README.md",
+      "records": 91,
+      "tokens_before": 2034,
+      "tokens_after": 2034,
+      "saved_pct": 0.0,
+      "extractor": "passthrough",
+      "guarantee": null,
+      "truncated": false,
+      "patterns": 0,
+      "sections": {},
+      "cost": {
+        "model": "claude-sonnet-5",
+        "input_rate_per_mtok": 3.0,
+        "calls": 1000,
+        "usd_before": 6.1,
+        "usd_after": 6.1,
+        "usd_saved": 0.0,
+        "saved_pct": 0.0
       }
     }
   ],
@@ -563,5 +743,20 @@
       "sd": 0.471,
       "n": 8
     }
-  ]
+  ],
+  "rates": {
+    "claude-opus-5": {
+      "input": 5.0,
+      "output": 25.0
+    },
+    "claude-sonnet-5": {
+      "input": 3.0,
+      "output": 15.0
+    },
+    "claude-haiku-4-5": {
+      "input": 1.0,
+      "output": 5.0
+    }
+  },
+  "token_cache_size": 6114
 }

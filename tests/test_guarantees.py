@@ -16,6 +16,7 @@ reading the code.
 from __future__ import annotations
 
 import json
+import pathlib
 
 import pytest
 
@@ -215,3 +216,30 @@ class TestDeterminism:
         ctx = compress(records, CompressConfig(name="t"), COUNTER)
         assert ctx.records_in == len(records)
         assert ctx.stats["extractor"] == "hybrid"
+
+
+class TestNeverInflates:
+    """Compression that can grow a payload is worse than none at all."""
+
+    def test_marginal_structure_passes_through(self):
+        """Pointed at its own README an earlier build returned 22% MORE tokens.
+
+        Prose scores just above the confidence floor, so it compressed — and
+        the pattern list cost more than the lines it replaced.
+        """
+        readme = (pathlib.Path(__file__).resolve().parent.parent / "README.md")
+        if not readme.exists():
+            pytest.skip("README.md not present")
+        records = load_lines_text(readme.read_text(encoding="utf-8"))
+        ctx = compress(records, CompressConfig(name="t"), COUNTER)
+        assert COUNTER.count(ctx.text) <= COUNTER.count(
+            "\n".join(r.raw for r in records)
+        )
+
+    @pytest.mark.parametrize("n", [5, 20, 60])
+    def test_tiny_payloads_never_grow(self, n):
+        records = load_lines_text(make_logs(n))
+        ctx = compress(records, CompressConfig(name="t"), COUNTER)
+        assert COUNTER.count(ctx.text) <= COUNTER.count(
+            "\n".join(r.raw for r in records)
+        )
