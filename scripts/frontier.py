@@ -124,23 +124,34 @@ def build_incidents(path: Path, count: int, lines_each: int) -> list[Incident]:
 _JSON_BLOCK = re.compile(r"\{.*\}", re.S)
 
 
-def call_json(client, model: str, system: str, user: str) -> dict:
+def call_json(client, model: str, system: str, user: str,
+              max_tokens: int = MAX_TOKENS) -> dict:
     """Call the model and parse a JSON object out of the reply.
 
     Note: no `temperature` is passed. Flare's client sends temperature=0.0,
     which current models reject with a 400 — another reason its calls would
     fail today.
+
+    `max_tokens` caps thinking *and* response text together, and current
+    models think by default. A prompt that reasons harder can therefore
+    consume the whole budget before emitting a character, which surfaces as an
+    empty response rather than an error — so give demanding prompts real
+    headroom, and check stop_reason when nothing comes back.
     """
     response = client.messages.create(
         model=model,
-        max_tokens=MAX_TOKENS,
+        max_tokens=max_tokens,
         system=system,
         messages=[{"role": "user", "content": user}],
     )
     text = "".join(b.text for b in response.content if b.type == "text").strip()
     match = _JSON_BLOCK.search(text)
     if not match:
-        raise ValueError(f"no JSON in response: {text[:160]}")
+        raise ValueError(
+            f"no JSON in response (stop_reason={response.stop_reason}, "
+            f"output_tokens={response.usage.output_tokens}, "
+            f"max_tokens={max_tokens}): {text[:160]}"
+        )
     # strict=False: models occasionally emit a raw control character inside a
     # string (a literal newline in an explanation, say). That is invalid JSON
     # by the letter of the spec but perfectly readable, and rejecting it would

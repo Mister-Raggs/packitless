@@ -1,0 +1,13 @@
+8 incidents x 6 levels — 56 API calls (8 judge calls, not 48)
+  1/8 incidents  2/8 incidents  3/8 incidents  4/8 incidents  5/8 incidents  6/8 incidents  7/8 incidents  8/8 incidents
+
+level               tok   saved  relev   spec    act   mean    sd  rank  missed   n
+--------------------------------------------------------------------------------------
+baseline         18,481    0.0%   4.75   3.88   3.62   4.08  0.56  2.25    2.62   8
+budget=1500       1,096   94.1%   4.62   3.75   3.12   3.83  0.56  3.62    2.88   8
+budget=800          818   95.6%   4.62   3.75   3.25   3.88  0.47  3.62    3.00   8
+budget=400          398   97.8%   4.50   3.12   3.25   3.62  0.60  4.12    3.00   8
+budget=200          200   98.9%   4.25   2.88   2.88   3.33  0.76  4.88    2.75   8
+budget=None       1,107   94.0%   4.62   4.25   3.62   4.17  0.47  2.50    2.75   8
+
+wrote /Users/raghavkachroo/Desktop/SnowFlake Hackathon/results/frontier_batched.json

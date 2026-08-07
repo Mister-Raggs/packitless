@@ -1,0 +1,42 @@
+name: guarantees
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 is the floor declared in pyproject; 3.13 catches deprecations early.
+        python: ["3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . pytest
+
+      # No API key, no corpora, no network. Fixtures are synthetic and the
+      # token counter falls back to the offline heuristic, so the guarantees
+      # are enforced on every commit rather than whenever someone is willing
+      # to spend money on an LLM judge.
+      - name: Guarantees
+        run: pytest tests/ -v
+
+      - name: CLI smoke test
+        run: |
+          printf 'INFO worker[%d] processed batch blk_%d in %dms\n' \
+            $(seq 1 200) > /tmp/synthetic.log
+          packitless --budget 300 --stats < /tmp/synthetic.log > /tmp/out.txt
+          test -s /tmp/out.txt
+          packitless --explain < /tmp/synthetic.log

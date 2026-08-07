@@ -138,17 +138,23 @@ footer { padding: 32px 0 56px; font-size: 13px; color: var(--muted); }
 
   <section>
     <div class="sec-head"><h2>Does compression hurt the answer?</h2><span class="rule"></span></div>
-    <p>Log summaries scored 1–5 by an independent LLM judge that always sees the
+    <p>Log summaries scored by an independent LLM judge that always sees the
     <em>uncompressed</em> logs as ground truth, so a summary that lost something real has nowhere
-    to hide. Eight incidents, 48 runs.</p>
+    to hide. Every candidate for an incident is scored in one call, side by side — an earlier
+    version scored each in isolation and could not resolve the differences at all.</p>
     <figure><div id="frontier"></div>
-      <figcaption>Relevance held at 5.00 at every budget — summaries never became wrong. The shaded
-      band is the spread across the three scored dimensions.</figcaption>
+      <figcaption>The shaded band is the spread across the three scored dimensions. Mean rank —
+      the judge's direct ordering — runs 2.25 (uncompressed) · 2.50 (94% compressed) · 3.62 ·
+      4.12 · 4.88 (98.9% compressed).</figcaption>
     </figure>
     <div class="callout">
-      <p><strong>Read this honestly:</strong> quality is not monotonic — a 200-token payload scored
-      <em>higher</em> than an 800-token one. At n=8 on an integer rubric those gaps are noise. The
-      defensible claim is “no detectable quality loss down to 200 tokens”, not “we found the optimum”.</p>
+      <p><strong>Read this honestly:</strong> at 94% compression the result ranks level with the
+      uncompressed baseline — 4.17 against 4.08, with a standard deviation near 0.5 at n=8. That is
+      a tie, not a win, and it should be reported as one. The drop at 200 tokens is about 1.8
+      standard deviations: real, but not decisive at this sample size.</p>
+      <p>An earlier run scored each summary alone rather than against its siblings and reported the
+      whole curve as flat noise. The instrument was the problem, not the compressor — worth saying
+      out loud, because the first result was the one that flattered us.</p>
     </div>
   </section>
 

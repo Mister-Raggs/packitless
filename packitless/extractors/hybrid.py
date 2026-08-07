@@ -38,6 +38,10 @@ class HybridExtractor:
 
     def __init__(self, members: list[Extractor]) -> None:
         self._members = members
+        # A merged result is reconstructable only if every partition is.
+        self.reconstructable = all(
+            getattr(m, "reconstructable", False) for m in members
+        )
 
     def claim(self, record: Record) -> float:
         """Best claim among members — the router is only as good as its parts."""

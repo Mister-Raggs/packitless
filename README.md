@@ -44,18 +44,24 @@ Real tokenizer (`claude-sonnet-5`), no budget cap, so nothing is truncated:
 ### Does compression hurt the answer?
 
 Log summarisation, scored by an independent LLM judge that always sees the
-**uncompressed** logs as ground truth (n=8 incidents, 48 runs):
+**uncompressed** logs as ground truth and rates every candidate for an incident
+side by side in one call (n=8 incidents):
 
-| Level | Payload tok | Saved | Relevance | Mean quality |
-|---|---|---|---|---|
-| baseline | 18,481 | — | 5.00 | 4.46 |
-| budget=800 | 818 | 95.6% | 5.00 | 4.25 |
-| budget=200 | 200 | 98.9% | 5.00 | 4.33 |
+| Level | Payload tok | Saved | Mean | sd | Rank |
+|---|---|---|---|---|---|
+| baseline | 18,481 | — | 4.08 | 0.56 | 2.25 |
+| budget=None | 1,107 | **94.0%** | **4.17** | 0.47 | 2.50 |
+| budget=800 | 818 | 95.6% | 3.88 | 0.47 | 3.62 |
+| budget=400 | 398 | 97.8% | 3.62 | 0.60 | 4.12 |
+| budget=200 | 200 | 98.9% | 3.33 | 0.76 | 4.88 |
 
-Relevance holds at 5.00 throughout — summaries never became *wrong*. Quality
-differences between budgets are within noise at this sample size, so the
-honest claim is "no detectable quality loss down to 200 tokens", not "we found
-the optimum".
+At 94% compression the result ranks level with the uncompressed baseline — a
+tie, not a win, given sd ≈ 0.5 at n=8. Below ~800 tokens quality degrades, and
+rank orders monotonically.
+
+An earlier version scored each summary in isolation and reported the curve as
+flat noise. The instrument was the problem, not the compressor; it also cost 5x
+more, because it re-sent the same 18,481-token payload on every call.
 
 ## Two guarantees, and it tells you which one you got
 

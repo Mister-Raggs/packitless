@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from collections import defaultdict
 from typing import Any
 
@@ -65,6 +66,63 @@ def split_row(row: str) -> list[str]:
             current.append(char)
     cells.append("".join(current))
     return cells
+
+
+_DICT_ENTRY = re.compile(r"^  @(\d+) (.*)$")
+_SCHEMA_LINE = re.compile(r"^(S\d+) fields: (.*)$")
+
+
+def decode_rendered(text: str) -> list[dict[str, str]]:
+    """Rebuild records from rendered output — the inverse of the renderer.
+
+    This is what makes the lossless claim testable rather than rhetorical: if
+    an extractor reports `reconstructable=True`, feeding its own output back
+    through here must return the records it was given. Anything the renderer
+    shortens for tidiness breaks this, which is precisely the point.
+
+    Args:
+        text: Rendered compression output.
+
+    Returns:
+        One dict per compact row, with dictionary references resolved.
+    """
+    schemas: dict[str, list[str]] = {}
+    dictionaries: dict[str, list[str]] = {}
+    rows: list[tuple[str, str]] = []
+
+    current: str | None = None
+    for line in text.splitlines():
+        if match := _SCHEMA_LINE.match(line):
+            schemas[match.group(1)] = [f.strip() for f in match.group(2).split(",")]
+            current = None
+        elif " dictionary (" in line and line.endswith("entries):"):
+            current = line.split(" dictionary (")[0]
+            dictionaries[current] = []
+        elif current and (match := _DICT_ENTRY.match(line)):
+            index, value = int(match.group(1)), match.group(2)
+            if index != len(dictionaries[current]):
+                raise ValueError(f"{current} dictionary out of order at @{index}")
+            dictionaries[current].append(value)
+        else:
+            stripped = line.strip()
+            label = stripped.split(ROW_DELIMITER, 1)[0]
+            if label in schemas and ROW_DELIMITER in stripped:
+                rows.append((label, stripped))
+                current = None
+            elif not stripped:
+                current = None
+
+    out: list[dict[str, str]] = []
+    for label, row in rows:
+        cells = split_row(row)[1:]
+        record: dict[str, str] = {}
+        for key, cell in zip(schemas[label], cells):
+            if cell.startswith("@") and cell[1:].isdigit():
+                record[key] = dictionaries.get(key, [])[int(cell[1:])]
+            else:
+                record[key] = cell
+        out.append(record)
+    return out
 
 
 def _fields(record: Record) -> dict[str, Any] | None:
@@ -120,6 +178,8 @@ class JsonRecordExtractor:
     """Collapses homogeneous JSON records to a schema plus varying values."""
 
     name = "jsonrec"
+    # Schema plus dictionary references restores every record exactly.
+    reconstructable = True
 
     def sniff(self, records: list[Record]) -> float:
         """Estimate savings from schema collapse on a sample."""

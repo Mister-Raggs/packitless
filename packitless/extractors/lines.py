@@ -42,6 +42,9 @@ class LineTemplateExtractor:
     """Groups log lines by their masked template."""
 
     name = "lines"
+    # Templates keep what happened and how often, never the parameter values
+    # of individual events, so a payload cannot be rebuilt from them.
+    reconstructable = False
 
     def __init__(self, use_drain: bool = True) -> None:
         # Availability is checked once; the miner itself is built per call.

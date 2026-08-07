@@ -467,7 +467,7 @@
     {
       "payload": "source code",
       "scores": {
-        "lines": 0.0492,
+        "lines": 0.0534,
         "jsonrec": 0.0,
         "hybrid": 0.0
       }
@@ -501,53 +501,66 @@
       }
     ]
   },
+  "frontier_method": "comparative",
   "frontier": [
-    {
-      "level": "budget=1500",
-      "payload_tokens": 1096,
-      "relevance": 5.0,
-      "specificity": 4.25,
-      "actionability": 3.875,
-      "n": 8
-    },
     {
       "level": "baseline",
       "payload_tokens": 18481,
-      "relevance": 5.0,
-      "specificity": 4.375,
-      "actionability": 4.0,
+      "relevance": 4.75,
+      "specificity": 3.875,
+      "actionability": 3.625,
+      "rank": 2.25,
+      "sd": 0.556,
       "n": 8
     },
     {
-      "level": "budget=None",
-      "payload_tokens": 1107,
-      "relevance": 5.0,
-      "specificity": 4.125,
-      "actionability": 4.0,
+      "level": "budget=1500",
+      "payload_tokens": 1096,
+      "relevance": 4.625,
+      "specificity": 3.75,
+      "actionability": 3.125,
+      "rank": 3.62,
+      "sd": 0.563,
       "n": 8
     },
     {
       "level": "budget=800",
       "payload_tokens": 818,
-      "relevance": 5.0,
-      "specificity": 4.0,
-      "actionability": 3.75,
+      "relevance": 4.625,
+      "specificity": 3.75,
+      "actionability": 3.25,
+      "rank": 3.62,
+      "sd": 0.469,
       "n": 8
     },
     {
       "level": "budget=400",
       "payload_tokens": 398,
-      "relevance": 5.0,
-      "specificity": 4.0,
-      "actionability": 3.875,
+      "relevance": 4.5,
+      "specificity": 3.125,
+      "actionability": 3.25,
+      "rank": 4.12,
+      "sd": 0.603,
       "n": 8
     },
     {
       "level": "budget=200",
       "payload_tokens": 200,
-      "relevance": 5.0,
-      "specificity": 4.0,
-      "actionability": 4.0,
+      "relevance": 4.25,
+      "specificity": 2.875,
+      "actionability": 2.875,
+      "rank": 4.88,
+      "sd": 0.756,
+      "n": 8
+    },
+    {
+      "level": "budget=None",
+      "payload_tokens": 1107,
+      "relevance": 4.625,
+      "specificity": 4.25,
+      "actionability": 3.625,
+      "rank": 2.5,
+      "sd": 0.471,
       "n": 8
     }
   ]

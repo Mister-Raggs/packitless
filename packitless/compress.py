@@ -41,6 +41,12 @@ class CompressConfig:
             consume the whole budget.
         min_confidence: If the best extractor scores below this, pass the
             payload through untouched rather than mangling it.
+        require_lossless: Restrict the competition to extractors whose output
+            the payload can be rebuilt from. The competition otherwise
+            optimises purely for ratio, and the highest ratio is frequently
+            lossy — on templated JSON, line templating can beat schema
+            collapse three to one while discarding every field value. Set
+            this when reversibility matters more than the number.
     """
 
     name: str
@@ -49,6 +55,7 @@ class CompressConfig:
     verbatim_floor: float = 0.9
     max_verbatim: int = 10
     min_confidence: float = extractors.MIN_CONFIDENCE
+    require_lossless: bool = False
 
 
 PASSTHROUGH = CompressConfig(name="passthrough", extractor="passthrough")
@@ -77,7 +84,9 @@ def compress(
         return _passthrough(records, reason="requested")
 
     counter = counter or get_counter()
-    extractor, confidence = extractors.select(records, prefer=config.extractor)
+    extractor, confidence = extractors.select(
+        records, prefer=config.extractor, require_lossless=config.require_lossless
+    )
 
     if confidence < config.min_confidence:
         return _passthrough(

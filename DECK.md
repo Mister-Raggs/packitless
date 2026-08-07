@@ -47,17 +47,23 @@ ratio targets. Records you flag as critical survive even if that overruns the bu
 
 ## 3 — Does it hurt the answer? (0:55–1:30)
 
-Frontier chart. Judge always sees the **uncompressed** logs as ground truth, so a
-summary that lost something has nowhere to hide.
+Frontier chart. Judge always sees the **uncompressed** logs as ground truth, and scores
+every candidate for an incident **side by side in one call**, so it can say "this one
+dropped the disk failure" rather than guessing an integer in isolation.
 
-**Relevance holds at 5.00 at every budget.** Summaries never became wrong.
+**94% fewer tokens ranks level with no compression at all** — mean 4.17 vs 4.08, mean
+rank 2.50 vs 2.25. It even wins on *specificity* (4.25 vs 3.88): templates plus counts
+plus the salient lines surface structure that an 18,000-token raw dump buries.
 
-**Say the caveat out loud:** the curve is flat *and non-monotonic* — 200 tokens scored
-higher than 800. At n=8 on an integer rubric that's noise. The claim is "no detectable
-quality loss down to 200 tokens," not "we found the optimum."
+Rank ordering is the clean signal, and it's monotonic:
+**2.25 → 2.50 → 3.62 → 4.12 → 4.88.**
 
-Volunteering that is worth more than hiding it. It signals you know what your
-instrument can and cannot resolve.
+**Say the caveat out loud:** sd ≈ 0.5 at n=8, so baseline-vs-compressed is a *tie*, not
+a win. The drop at 200 tokens is ~1.8 sd — real, not decisive.
+
+**And say this too:** the first version of this experiment scored each summary alone and
+reported the whole curve as flat noise. The instrument was the problem, not the
+compressor. The result that flattered us was the one that was wrong.
 
 ---
 
@@ -129,15 +135,16 @@ you get). `jobs` has perfect structure and still only reaches 27%, because its v
 are high-cardinality.
 
 **"What did it cost to build the evidence?"**
-About $4, and most of that was our own mistake — the eval harness re-sent the same
+The first sweep cost ~$4, and most of that was our own mistake — it re-sent the same
 18,481-token payload 48 times without caching. A token-reduction tool measured by a
-harness that ignored the obvious token optimisation. The fix takes a sweep to ~$0.30,
-and the free fidelity tier means most runs now cost nothing.
+harness that ignored the obvious token optimisation. Batching the judge cut that ~5x
+*and* made it a sharper instrument. The free fidelity tier means most runs now cost
+nothing at all.
 
 **"What's not done?"**
-Batched-judge frontier at larger n. An MCP server. CI running the round-trip on a
-synthetic fixture. The routing fix landed today; per-record routing took the mixed
-stream from 835 garbage patterns to 14 clean ones.
+Larger n on the frontier — 8 incidents is what a 2,000-line corpus yields at 250 lines
+each. An MCP server. Per-record routing landed today and took the mixed stream from 835
+garbage patterns to 14 clean ones.
 
 ---
 

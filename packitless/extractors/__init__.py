@@ -46,12 +46,17 @@ def sniff_all(records: list[Record]) -> list[tuple[str, float]]:
     return sorted(scores, key=lambda kv: kv[1], reverse=True)
 
 
-def select(records: list[Record], prefer: str = "auto") -> tuple[Extractor, float]:
+def select(
+    records: list[Record], prefer: str = "auto", require_lossless: bool = False
+) -> tuple[Extractor, float]:
     """Choose an extractor for `records`.
 
     Args:
         records: The payload.
         prefer: An extractor name, or "auto" to run the sniff competition.
+        require_lossless: Only consider extractors the payload can be rebuilt
+            from. Without this the competition maximises ratio alone, and the
+            winner is often lossy even when a reversible option was available.
 
     Returns:
         The chosen extractor and its confidence.
@@ -63,6 +68,14 @@ def select(records: list[Record], prefer: str = "auto") -> tuple[Extractor, floa
         return REGISTRY[prefer], REGISTRY[prefer].sniff(records)
 
     scores = sniff_all(records)
+    if require_lossless:
+        scores = [
+            (n, s) for n, s in scores
+            if getattr(REGISTRY[n], "reconstructable", False)
+        ]
+        if not scores:
+            logger.info("no reconstructable extractor available — passing through")
+            return REGISTRY["lines"], 0.0
     name, confidence = scores[0]
     if confidence < MIN_CONFIDENCE:
         logger.info(

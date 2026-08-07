@@ -148,7 +148,12 @@ def main() -> int:
         }
 
     # Previously-measured results that need API credit to reproduce.
-    frontier = ROOT / "results" / "frontier.json"
+    # Prefer the batched run: same incidents, but the judge scored every
+    # candidate side by side instead of blind, which resolves differences the
+    # absolute-scoring run reported as noise.
+    batched = ROOT / "results" / "frontier_batched.json"
+    frontier = batched if batched.exists() else ROOT / "results" / "frontier.json"
+    report["frontier_method"] = "comparative" if batched.exists() else "absolute"
     if frontier.exists():
         runs = [r for r in json.loads(frontier.read_text()) if not r.get("error")]
         by_level: dict[str, list] = {}
@@ -161,6 +166,10 @@ def main() -> int:
                 "relevance": round(statistics.mean(r["relevance"] for r in rs), 3),
                 "specificity": round(statistics.mean(r["specificity"] for r in rs), 3),
                 "actionability": round(statistics.mean(r["actionability"] for r in rs), 3),
+                "rank": round(statistics.mean(r.get("rank", 0) for r in rs), 2),
+                "sd": round(statistics.stdev(
+                    [(r["relevance"] + r["specificity"] + r["actionability"]) / 3
+                     for r in rs]) if len(rs) > 1 else 0.0, 3),
                 "n": len(rs),
             }
             for level, rs in by_level.items()

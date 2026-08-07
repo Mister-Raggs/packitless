@@ -1,0 +1,666 @@
+[
+  {
+    "incident": 5,
+    "level": "baseline",
+    "payload_tokens": 19071,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 1,
+    "missed": [
+      "No quantitative breakdown of message-type counts (e.g., ~160 Receiving, ~68 allocateBlock, ~22 Served)",
+      "Does not explain the write-pipeline mechanism (same block received at multiple DataNodes/ports for 3x replication)",
+      "Doesn't note max anomaly score value (0.23) alongside the mean of 0.0"
+    ]
+  },
+  {
+    "incident": 5,
+    "level": "budget=1500",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "rank": 4,
+    "missed": [
+      "No mention of the job id/path (task_200811092030_0001, /user/root/rand) despite it being a prominent, repeated pattern",
+      "No quantitative breakdown of message-type volumes",
+      "Remediation steps are generic ('confirm', 'monitor dashboards') without pointing to specific blocks/IPs to check"
+    ]
+  },
+  {
+    "incident": 5,
+    "level": "budget=800",
+    "payload_tokens": 841,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 3.0,
+    "rank": 3,
+    "missed": [
+      "No mention of the MapReduce job id/path context (task_200811092030_0001, /user/root/rand)",
+      "Does not explain the pipeline replication pattern (same block appearing at multiple hosts/ports)",
+      "Remediation lacks concrete block/IP-level checks, staying at a general monitoring level"
+    ]
+  },
+  {
+    "incident": 5,
+    "level": "budget=400",
+    "payload_tokens": 415,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 2,
+    "missed": [
+      "No mention of job id/path context (task_200811092030_0001, /user/root/rand)",
+      "No quantitative breakdown of message-type counts",
+      "Doesn't address the multi-destination fan-out of a single block being served/received across pipeline nodes"
+    ]
+  },
+  {
+    "incident": 5,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 4.0,
+    "specificity": 2.0,
+    "actionability": 2.0,
+    "rank": 6,
+    "missed": [
+      "No specific block IDs, IPs, or job/task identifiers cited from the logs",
+      "No quantitative anomaly score details (max 0.23) or message-type counts",
+      "Remediation steps are vague and generic (no concrete verification steps, no specific systems/blocks to check)"
+    ]
+  },
+  {
+    "incident": 5,
+    "level": "budget=None",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "rank": 5,
+    "missed": [
+      "No mention of the job id/path (task_200811092030_0001, /user/root/rand)",
+      "No quantitative breakdown of message-type volumes",
+      "Remediation steps remain generic without pointing to specific blocks/DataNodes for verification"
+    ]
+  },
+  {
+    "incident": 2,
+    "level": "baseline",
+    "payload_tokens": 18817,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 2,
+    "missed": [
+      "Duplicate 'Receiving block' entries for the same block ID from different src IPs (pipeline forwarding pattern, e.g. blk_-6790654856691185731, blk_-3667585438930153850)",
+      "The extreme fan-out of 'Served block' calls for blk_-1608999687919862906 and blk_-3544583377289625738 to 20+ distinct destinations across many DataNodes, suggesting hot/popular block read pattern"
+    ]
+  },
+  {
+    "incident": 2,
+    "level": "budget=1500",
+    "payload_tokens": 1104,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "rank": 4,
+    "missed": [
+      "Duplicate Receiving block entries for same block ID indicating pipeline replication forwarding",
+      "Heavy multi-destination serving of specific blocks (blk_-1608999687919862906, blk_-3544583377289625738) suggesting hotspot read pattern",
+      "Specific job/task naming convention (task_200811092030_0001)"
+    ]
+  },
+  {
+    "incident": 2,
+    "level": "budget=800",
+    "payload_tokens": 820,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "rank": 3,
+    "missed": [
+      "Duplicate Receiving block entries per block ID across pipeline hops",
+      "Hotspot serving pattern for specific block IDs to many destinations",
+      "Specific MapReduce job/task reference (task_200811092030_0001)"
+    ]
+  },
+  {
+    "incident": 2,
+    "level": "budget=400",
+    "payload_tokens": 359,
+    "relevance": 4.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 6,
+    "missed": [
+      "Specific block IDs and repeat-receive pattern",
+      "Hotspot serving pattern for popular blocks",
+      "Job/task naming details",
+      "Any mention of the DataTransfer/addStoredBlock confirmation chain specifics"
+    ]
+  },
+  {
+    "incident": 2,
+    "level": "budget=200",
+    "payload_tokens": 209,
+    "relevance": 4.0,
+    "specificity": 3.0,
+    "actionability": 4.0,
+    "rank": 5,
+    "missed": [
+      "Specific block IDs (e.g., blk_-1608999687919862906) and their heavy serve fan-out",
+      "Duplicate Receiving block entries indicating pipeline forwarding",
+      "Job/task naming pattern (task_200811092030_0001)"
+    ]
+  },
+  {
+    "incident": 2,
+    "level": "budget=None",
+    "payload_tokens": 1104,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "rank": 1,
+    "missed": [
+      "Duplicate Receiving block entries for same block from multiple src IPs (pipeline replication pattern)",
+      "Underrepresents how many times blk_-1608999687919862906 was actually served (20+ times, not just 'a single successful block transfer')",
+      "Job/task naming convention specifics"
+    ]
+  },
+  {
+    "incident": 1,
+    "level": "baseline",
+    "payload_tokens": 18094,
+    "relevance": 4.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 3,
+    "missed": [
+      "Specific source/destination IPs for the replication event (10.251.31.5 -> 10.251.90.64)",
+      "Confirmation line 'Received block ... of size 91178' showing successful completion of the replication",
+      "Widespread serving of blk_-3544583377289625738 and blk_-1608999687919862906 to dozens of distinct destination IPs, suggesting a hot/popular block read pattern"
+    ]
+  },
+  {
+    "incident": 1,
+    "level": "budget=1500",
+    "payload_tokens": 1366,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 2,
+    "missed": [
+      "Widespread serving of blk_-3544583377289625738 to many distinct destination hosts",
+      "The 'Received block' confirmation line with size 91178 completing the replication lifecycle",
+      "High concurrency of near-simultaneous block receipts (~100+ blocks within the same second) indicating a large write burst"
+    ]
+  },
+  {
+    "incident": 1,
+    "level": "budget=800",
+    "payload_tokens": 787,
+    "relevance": 4.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 4,
+    "missed": [
+      "Specific block ID (blk_-1608999687919862906) and source/destination IPs for the replication event",
+      "Widespread serving pattern of the two 'hot' blocks to dozens of hosts",
+      "The explicit successful-receipt confirmation line"
+    ]
+  },
+  {
+    "incident": 1,
+    "level": "budget=400",
+    "payload_tokens": 370,
+    "relevance": 4.0,
+    "specificity": 2.0,
+    "actionability": 3.0,
+    "rank": 5,
+    "missed": [
+      "Specific block ID and IP addresses involved in the replication event",
+      "Widespread serving of blk_-3544583377289625738/blk_-1608999687919862906 to many destinations",
+      "Identification of the MapReduce job as a randomwriter-style job writing to /user/root/rand"
+    ]
+  },
+  {
+    "incident": 1,
+    "level": "budget=200",
+    "payload_tokens": 209,
+    "relevance": 3.0,
+    "specificity": 2.0,
+    "actionability": 2.0,
+    "rank": 6,
+    "missed": [
+      "The single NameSystem replication request/transfer event (ask to replicate blk_-1608999687919862906) is entirely omitted",
+      "Specific block IDs and destination patterns",
+      "Widespread serving of hot blocks to dozens of hosts"
+    ]
+  },
+  {
+    "incident": 1,
+    "level": "budget=None",
+    "payload_tokens": 1366,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 1,
+    "missed": [
+      "Widespread serving of blk_-3544583377289625738 to many distinct destination hosts (not just blk_-1608999687919862906)",
+      "High concurrency of near-simultaneous block receipts indicating a large write burst"
+    ]
+  },
+  {
+    "incident": 0,
+    "level": "baseline",
+    "payload_tokens": 16813,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "rank": 3,
+    "missed": [
+      "Did not trace the specific cascading replication chain of blk_-1608999687919862906 (3\u21925\u21927\u21929 replicas across 10.250.14.224\u219210.251.215.16\u219210.251.74.79/10.251.107.19\u219210.251.31.5/10.251.71.240)",
+      "Did not connect the repeated 'ask to replicate' events to the fact that this exact block IS job.jar, which typically has an elevated replication factor (mapred.submit.replication) explaining the multi-step replication cascade"
+    ]
+  },
+  {
+    "incident": 0,
+    "level": "budget=1500",
+    "payload_tokens": 1477,
+    "relevance": 4.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "rank": 2,
+    "missed": [
+      "Did not identify that blk_-1608999687919862906 corresponds to job.jar, which explains the cascading replication as normal elevated-replication-factor behavior for MapReduce job distribution files, rather than framing it primarily as under-replication repair",
+      "Did not mention the other job files (job.split, job.xml) and their own block allocation/replication activity happening in parallel"
+    ]
+  },
+  {
+    "incident": 0,
+    "level": "budget=800",
+    "payload_tokens": 786,
+    "relevance": 5.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 4,
+    "missed": [
+      "Did not trace the full multi-hop replication chain (only mentions one DataTransfer step, missing the subsequent hops to 10.251.74.79/10.251.107.19 and 10.251.31.5/10.251.71.240)",
+      "Did not mention the job.jar/job.split/job.xml file context tied to blocks blk_-1608999687919862906, blk_7503483334202473044, blk_-3544583377289625738",
+      "Did not note the huge fan-out of 'Served block' events indicating widespread read distribution of job files to task nodes"
+    ]
+  },
+  {
+    "incident": 0,
+    "level": "budget=400",
+    "payload_tokens": 398,
+    "relevance": 4.0,
+    "specificity": 2.0,
+    "actionability": 2.0,
+    "rank": 5,
+    "missed": [
+      "No mention of specific block IDs or the replication chain for blk_-1608999687919862906",
+      "No mention of the MapReduce job (job_200811092030_0001) or job.jar/job.split/job.xml file context",
+      "No mention of the large fan-out of block-serving events to many task nodes"
+    ]
+  },
+  {
+    "incident": 0,
+    "level": "budget=200",
+    "payload_tokens": 224,
+    "relevance": 4.0,
+    "specificity": 2.0,
+    "actionability": 2.0,
+    "rank": 6,
+    "missed": [
+      "No mention of specific block IDs (blk_-1608999687919862906, blk_7503483334202473044, blk_-3544583377289625738)",
+      "No mention of the associated MapReduce job or job.jar/job.split/job.xml files",
+      "No mention of the replication chain/cascade or the large-scale fan-out serving pattern"
+    ]
+  },
+  {
+    "incident": 0,
+    "level": "budget=None",
+    "payload_tokens": 1569,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "rank": 1,
+    "missed": [
+      "Did not explicitly state that blk_-1608999687919862906 is literally the block for job.jar (confirmed by the allocateBlock log line), which would have made the replication-factor hypothesis a certainty rather than a guess",
+      "Did not mention the parallel allocation/replication of job.split and job.xml blocks happening concurrently"
+    ]
+  },
+  {
+    "incident": 4,
+    "level": "baseline",
+    "payload_tokens": 18446,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 1,
+    "missed": [
+      "The block blk_-1608999687919862906 is served repeatedly to more than 20 distinct destination IPs from multiple DataNodes (10.251.90.64, 10.251.71.240, 10.251.71.193, 10.251.111.209, 10.251.107.19, 10.251.31.5) \u2014 a 'hot block' read pattern worth flagging, not just a receive-throughput observation.",
+      "No WARN/ERROR/Exception lines exist anywhere in the sample, which could be stated explicitly as confirmation of zero fault indicators.",
+      "Several blocks show duplicate 'Receiving block' entries at different nodes (e.g., blk_-2278104779962392523, blk_5488900529276086615), consistent with the standard 3x replication pipeline \u2014 not analyzed in detail."
+    ]
+  },
+  {
+    "incident": 4,
+    "level": "budget=1500",
+    "payload_tokens": 1170,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "rank": 4,
+    "missed": [
+      "The repeated serving of blk_-1608999687919862906 and blk_-3544583377289625738 to dozens of distinct destinations, indicating hot/widely-read blocks.",
+      "Duplicate 'Receiving block' entries for the same block ID at different source/destination pairs, illustrating the 3x replication pipeline mechanics.",
+      "No WARN/ERROR lines present anywhere in the log window."
+    ]
+  },
+  {
+    "incident": 4,
+    "level": "budget=800",
+    "payload_tokens": 783,
+    "relevance": 4.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 6,
+    "missed": [
+      "Incorrectly states 'all timestamped at 081109 203535' when several lines are timestamped 081109 203536.",
+      "Does not mention the hot-block pattern (blk_-1608999687919862906 served >20 times) or the duplicate-receive pipeline pattern.",
+      "No explicit confirmation of absence of WARN/ERROR entries."
+    ]
+  },
+  {
+    "incident": 4,
+    "level": "budget=400",
+    "payload_tokens": 396,
+    "relevance": 5.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 5,
+    "missed": [
+      "Does not reference specific node IPs, block IDs, or the repeated-serving/hot-block pattern seen for blk_-1608999687919862906.",
+      "Does not note duplicate 'Receiving block' entries consistent with 3x replication.",
+      "Does not quantify the scale of the job (e.g., ~300+ map tasks/part files) beyond a generic mention."
+    ]
+  },
+  {
+    "incident": 4,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 3,
+    "missed": [
+      "Does not call out the specific hot-block pattern (blk_-1608999687919862906 served to >20 distinct destinations).",
+      "Does not reference the job ID (job_200811092030_0001) or specific part-file task IDs, reducing concrete grounding despite good template-level analysis.",
+      "No mention of absence of WARN/ERROR lines explicitly."
+    ]
+  },
+  {
+    "incident": 4,
+    "level": "budget=None",
+    "payload_tokens": 1170,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 2,
+    "missed": [
+      "Does not explicitly identify the repeated serving of the same block to many distinct destinations (hot-block pattern).",
+      "Does not discuss the duplicate 'Receiving block' entries reflecting the 3x replication pipeline in detail.",
+      "Does not quantify the number of map tasks/part files (~300+) tied to job_200811092030_0001."
+    ]
+  },
+  {
+    "incident": 3,
+    "level": "baseline",
+    "payload_tokens": 19020,
+    "relevance": 4.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 5,
+    "missed": [
+      "The specific 'hot' block blk_-1608999687919862906 being served to at least 10 distinct destination IPs from multiple source DataNodes (10.251.31.5, 10.251.111.209, 10.250.14.224 x4, 10.251.215.16, 10.250.10.6 x3, 10.251.90.64 x2)",
+      "A second frequently-served block blk_-3544583377289625738 served to multiple distinct clients",
+      "Exact line-type counts (64 allocateBlock, 165 Receiving block, 21 Served block = 250 total)"
+    ]
+  },
+  {
+    "incident": 3,
+    "level": "budget=1500",
+    "payload_tokens": 912,
+    "relevance": 4.0,
+    "specificity": 2.0,
+    "actionability": 2.0,
+    "rank": 6,
+    "missed": [
+      "The specific MapReduce job/task identifier (task_200811092030_0001) writing to /user/root/rand",
+      "The specific hot block blk_-1608999687919862906 served repeatedly to many distinct IPs",
+      "Exact counts of each log template (64/165/21)",
+      "The second repeatedly-served block blk_-3544583377289625738"
+    ]
+  },
+  {
+    "incident": 3,
+    "level": "budget=800",
+    "payload_tokens": 841,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "rank": 1,
+    "missed": [
+      "The MapReduce job/task identifier (task_200811092030_0001) and the /user/root/rand write path",
+      "Exact counts of each log template (64 allocate / 165 receive / 21 serve)",
+      "The second repeatedly-served block blk_-3544583377289625738 and its source DataNodes (10.251.39.179, 10.251.197.226, 10.250.11.100)"
+    ]
+  },
+  {
+    "incident": 3,
+    "level": "budget=400",
+    "payload_tokens": 415,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 2,
+    "missed": [
+      "The specific hot block blk_-1608999687919862906 served to many distinct destination IPs, and the second hot block blk_-3544583377289625738",
+      "The MapReduce job/task identifier (task_200811092030_0001)"
+    ]
+  },
+  {
+    "incident": 3,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "rank": 3,
+    "missed": [
+      "The specific hot block blk_-1608999687919862906 and blk_-3544583377289625738 served to many distinct clients",
+      "The MapReduce job/task identifier (task_200811092030_0001)"
+    ]
+  },
+  {
+    "incident": 3,
+    "level": "budget=None",
+    "payload_tokens": 912,
+    "relevance": 3.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 4,
+    "missed": [
+      "Incorrectly states all entries share the same timestamp (081109 203534) when log lines actually span 203533-203535",
+      "The MapReduce job/task identifier (task_200811092030_0001)",
+      "Exact counts of each log template (64/165/21)",
+      "The second repeatedly-served block blk_-3544583377289625738"
+    ]
+  },
+  {
+    "incident": 6,
+    "level": "baseline",
+    "payload_tokens": 18727,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 5.0,
+    "rank": 1,
+    "missed": [
+      "No mention of the specific low anomaly/salience confidence value (e.g., 0.24) that other candidates cite",
+      "Does not note the single-block-to-many-destinations fan-out pattern (e.g., blk_-1608999687919862906 served to 8+ distinct IPs)",
+      "Doesn't flag the same-IP src/dest pattern indicating local task-writer to co-located DataNode writes"
+    ]
+  },
+  {
+    "incident": 6,
+    "level": "budget=1500",
+    "payload_tokens": 912,
+    "relevance": 4.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 4,
+    "missed": [
+      "Doesn't identify the specific job (job_200811092030_0001, 'rand' data-generation task) driving the block allocation burst",
+      "No mention of specific IPs or blocks for validation",
+      "Omits the block fan-out/multi-destination serving pattern seen in the logs"
+    ]
+  },
+  {
+    "incident": 6,
+    "level": "budget=800",
+    "payload_tokens": 841,
+    "relevance": 4.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 3,
+    "missed": [
+      "Doesn't name the specific job (rand data-generation MapReduce task) generating this traffic",
+      "No concrete IP/block-level spot-check suggested despite citing a specific salience score",
+      "Omits the repeated multi-destination block serving fan-out pattern"
+    ]
+  },
+  {
+    "incident": 6,
+    "level": "budget=400",
+    "payload_tokens": 415,
+    "relevance": 4.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "rank": 2,
+    "missed": [
+      "Doesn't tie the activity to the specific job (rand data-generation task, job_200811092030_0001)",
+      "No mention of confidence/salience scoring details",
+      "Omits the multi-destination block serving fan-out pattern"
+    ]
+  },
+  {
+    "incident": 6,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 4.0,
+    "specificity": 3.0,
+    "actionability": 2.0,
+    "rank": 6,
+    "missed": [
+      "No identification of the specific job (rand data-generation task) or block allocation context",
+      "No specific IPs, blocks, or salience data cited",
+      "Remediation steps are very generic and lack concrete verification actions (e.g., no dashboard/metric cross-check specifics)"
+    ]
+  },
+  {
+    "incident": 6,
+    "level": "budget=None",
+    "payload_tokens": 912,
+    "relevance": 4.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 5,
+    "missed": [
+      "Doesn't name the specific job (rand data-generation task) generating the block allocation burst",
+      "No specific IPs or block IDs cited for validation",
+      "Omits the multi-destination block serving fan-out pattern"
+    ]
+  },
+  {
+    "incident": 7,
+    "level": "baseline",
+    "payload_tokens": 18862,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "rank": 2,
+    "missed": [
+      "Exact breakdown of template occurrences (e.g., ~189 Receiving block, 51 allocateBlock, 10 Served block lines) which sums to the 250-line sample",
+      "No mention of the specific blocks (blk_-1608999687919862906, blk_-3544583377289625738) being served repeatedly to multiple destinations"
+    ]
+  },
+  {
+    "incident": 7,
+    "level": "budget=1500",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "rank": 3,
+    "missed": [
+      "Specific job/task naming (job_200811092030_0001, task 'rand', part-NNNNN output files)",
+      "Exact per-template line counts (189/51/10)"
+    ]
+  },
+  {
+    "incident": 7,
+    "level": "budget=800",
+    "payload_tokens": 841,
+    "relevance": 5.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 5,
+    "missed": [
+      "Specific job/task naming and file path details",
+      "Exact per-template line counts",
+      "No mention of repeated Served-block destinations for the same block ids"
+    ]
+  },
+  {
+    "incident": 7,
+    "level": "budget=400",
+    "payload_tokens": 415,
+    "relevance": 5.0,
+    "specificity": 3.0,
+    "actionability": 3.0,
+    "rank": 6,
+    "missed": [
+      "Specific job/task naming and file path details",
+      "Exact per-template line counts",
+      "No mention of salience/anomaly score granularity beyond the mean"
+    ]
+  },
+  {
+    "incident": 7,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 5.0,
+    "specificity": 3.0,
+    "actionability": 4.0,
+    "rank": 4,
+    "missed": [
+      "Specific job/task naming (job_200811092030_0001, 'rand' task, part-NNNNN files)",
+      "Exact per-template line counts (189/51/10)"
+    ]
+  },
+  {
+    "incident": 7,
+    "level": "budget=None",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 3.0,
+    "rank": 1,
+    "missed": [
+      "Specific job/task naming (job_200811092030_0001, 'rand' task, part-NNNNN output files) and replication factor context",
+      "Repeated Served-block destinations for the same block ids (blk_-1608999687919862906, blk_-3544583377289625738)"
+    ]
+  }
+]
