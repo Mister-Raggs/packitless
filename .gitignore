@@ -15,4 +15,8 @@ results/index.html
 results/slides.html
 *.png
 
+# Run logs are scratch; the JSON measurements they produced are the evidence.
+results/*.log
+results/*.txt
+
 # Measurements ARE the evidence — results/*.json is committed deliberately.

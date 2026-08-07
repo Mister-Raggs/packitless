@@ -2,7 +2,9 @@
 
 **Track 1 · Cost of Intelligence**
 
-Repo: `github.com/Mister-Raggs/packitless` · Results page: *(artifact link — **share it before submitting**)*
+**Live demo** https://mister-raggs.github.io/packitless/  
+**This deck** https://mister-raggs.github.io/packitless/slides.html  
+**Repo** https://github.com/Mister-Raggs/packitless
 
 Six beats, ~30 seconds each. Lead with where it fits and what it saves; the evidence is
 there to be pointed at, not walked through.

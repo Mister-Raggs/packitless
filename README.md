@@ -2,6 +2,9 @@
 
 Budget-aware context compression for repetitive LLM payloads.
 
+**[Measured results](https://mister-raggs.github.io/packitless/)** ·
+**[Slides](https://mister-raggs.github.io/packitless/slides.html)**
+
 Machine-generated text — logs, traces, events, structured records — is mostly
 repetition, and you pay full token price for every copy of it. `packitless`
 extracts the structure, spends a token budget on what actually carries signal,
@@ -123,21 +126,42 @@ uv venv && uv pip install -e .
 # Corpora are not committed — rebuild them from their sources
 python scripts/build_corpora.py --flare-repo ../flare --jobs-db path/to/jobs.db
 
-python scripts/baseline.py            # per-corpus baselines
+pytest tests/                         # the guarantees — no key, no network
+python scripts/fidelity_sweep.py      # free frontier: savings vs information loss
 python scripts/verify_lossless.py     # round-trip proof
+python scripts/baseline.py            # per-corpus baselines
 python scripts/unseen_benchmark.py /var/log/*.log
-python scripts/frontier.py --flare-repo ../flare   # needs API credit
+
+# Needs API credit; the batched judge costs roughly a fifth of the original
+python scripts/frontier_batched.py --flare-repo ../flare
+```
+
+Rebuild the published page and deck after any change:
+
+```bash
+python scripts/export_report.py --exact   # only if measurements changed
+python scripts/build_page.py              # regenerates results/ and docs/
 ```
 
 `ANTHROPIC_API_KEY` is optional. Without it the token counter falls back to a
 free heuristic — good enough to rank configs, but it under-counts dense
 identifier text by ~37%, so use `--exact` for any number you intend to publish.
 
-## CLI
+## Three ways in
+
+**Library** — one call in whatever builds your prompt.
+
+```python
+compress(records, CompressConfig(name="tight", budget_tokens=800))
+```
+
+**CLI** — reads stdin, writes to stdout, stats to stderr, so it drops into a
+pipeline without disturbing it. Works with any tool in any language.
 
 ```
 packitless [--budget N] [--extractor NAME] [--stats] [--json] [--explain] [--exact]
 ```
 
-Reads stdin, writes compressed text to stdout, stats to stderr — so it drops
-into a pipeline without disturbing it.
+**MCP** — `packitless-mcp` exposes `analyse` and `compress_payload`, so an agent
+can compress tool output before reading it into context. `analyse` is free and
+read-only, because the right answer is sometimes "don't bother".
