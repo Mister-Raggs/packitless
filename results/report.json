@@ -1,0 +1,554 @@
+{
+  "counter": "anthropic",
+  "corpora": [
+    {
+      "name": "hdfs",
+      "difficulty": "easy",
+      "source": "Flare repo \u2014 logs/hdfs_demo.log (real HDFS cluster logs)",
+      "records": 2000,
+      "tokens_before": 147815,
+      "extractor": "lines",
+      "confidence": 0.9633,
+      "guarantee": "lossy",
+      "patterns": [
+        {
+          "label": "T1",
+          "count": 1149,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$DataXceiver: Receiving block <*> src: <*> dest: <*>"
+        },
+        {
+          "label": "T2",
+          "count": 404,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$DataXceiver: <*> Served block <*> to <*>"
+        },
+        {
+          "label": "T3",
+          "count": 385,
+          "pattern": "081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: <*> <*>"
+        },
+        {
+          "label": "T4",
+          "count": 19,
+          "pattern": "081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.addStoredBlock: blockMap updated: <*> is added to <*> size <*>"
+        },
+        {
+          "label": "T5",
+          "count": 12,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$PacketResponder: PacketResponder <*> for block <*> terminating"
+        },
+        {
+          "label": "T6",
+          "count": 12,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$PacketResponder: Received block <*> of size <*> from <*>"
+        },
+        {
+          "label": "T7",
+          "count": 7,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$DataXceiver: Received block blk_-1608999687919862906 src: <*> dest: <*> of size 91178"
+        },
+        {
+          "label": "T8",
+          "count": 4,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$DataTransfer: <*> block blk_-1608999687919862906 to <*>"
+        },
+        {
+          "label": "T9",
+          "count": 2,
+          "pattern": "081109 203521 19 INFO <*> <*> <*> <*> to <*> <*> <*> <*> <*> 10.251.71.193:50010"
+        },
+        {
+          "label": "T10",
+          "count": 2,
+          "pattern": "081109 <*> 19 INFO dfs.FSNamesystem: BLOCK* ask <*> to replicate blk_-1608999687919862906 to datanode(s) <*> <*>"
+        },
+        {
+          "label": "T11",
+          "count": 2,
+          "pattern": "081109 <*> 19 INFO dfs.DataNode: <*> Starting thread to transfer block blk_-1608999687919862906 to <*> <*>"
+        },
+        {
+          "label": "T12",
+          "count": 1,
+          "pattern": "081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010"
+        },
+        {
+          "label": "T13",
+          "count": 1,
+          "pattern": "081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010"
+        }
+      ],
+      "total_patterns": 13,
+      "sweep": [
+        {
+          "budget": null,
+          "tokens_after": 1724,
+          "saved_pct": 98.83,
+          "count_conservation": 1.0,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": true
+        },
+        {
+          "budget": 4000,
+          "tokens_after": 1724,
+          "saved_pct": 98.83,
+          "count_conservation": 1.0,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": true
+        },
+        {
+          "budget": 1500,
+          "tokens_after": 1474,
+          "saved_pct": 99.0,
+          "count_conservation": 1.0,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": true
+        },
+        {
+          "budget": 800,
+          "tokens_after": 797,
+          "saved_pct": 99.46,
+          "count_conservation": 0.9995,
+          "pattern_coverage": 0.9231,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 400,
+          "tokens_after": 392,
+          "saved_pct": 99.73,
+          "count_conservation": 0.9905,
+          "pattern_coverage": 0.4615,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 200,
+          "tokens_after": 213,
+          "saved_pct": 99.86,
+          "count_conservation": 0.969,
+          "pattern_coverage": 0.2308,
+          "critical_recall": 1.0,
+          "passed": false
+        }
+      ],
+      "sample_input": [
+        "081109 203518 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.19.102:54106 dest: /10.250.19.102:50010",
+        "081109 203518 35 INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: /mnt/hadoop/mapred/system/job_200811092030_0001/job.jar. blk_-1608999687919862906",
+        "081109 203519 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.10.6:40524 dest: /10.250.10.6:50010",
+        "081109 203519 145 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.14.224:42420 dest: /10.250.14.224:50010",
+        "081109 203519 145 INFO dfs.DataNode$PacketResponder: PacketResponder 1 for block blk_-1608999687919862906 terminating"
+      ],
+      "sample_output": [
+        "\u2500\u2500 2,000 records \u00b7 13 patterns \u00b7 extractor=lines \u2500\u2500",
+        "[T1] \u00d71,149   081109 <*> <*> INFO dfs.DataNode$DataXceiver: Receiving block <*> src: <*> dest: <*>",
+        "[T2] \u00d7404     081109 <*> <*> INFO dfs.DataNode$DataXceiver: <*> Served block <*> to <*>",
+        "[T3] \u00d7385     081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: <*> <*>",
+        "[T4] \u00d719      081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.addStoredBlock: blockMap updated: <*> is added to <*> size <*>",
+        "[T5] \u00d712      081109 <*> <*> INFO dfs.DataNode$PacketResponder: PacketResponder <*> for block <*> terminating",
+        "[T6] \u00d712      081109 <*> <*> INFO dfs.DataNode$PacketResponder: Received block <*> of size <*> from <*>",
+        "[T7] \u00d77       081109 <*> <*> INFO dfs.DataNode$DataXceiver: Received block blk_-1608999687919862906 src: <*> dest: <*> of size 91178",
+        "[T8] \u00d74       081109 <*> <*> INFO dfs.DataNode$DataTransfer: <*> block blk_-1608999687919862906 to <*>",
+        "[T9] \u00d72       081109 203521 19 INFO <*> <*> <*> <*> to <*> <*> <*> <*> <*> 10.251.71.193:50010",
+        "[T10] \u00d72       081109 <*> 19 INFO dfs.FSNamesystem: BLOCK* ask <*> to replicate blk_-1608999687919862906 to datanode(s) <*> <*>",
+        "[T11] \u00d72       081109 <*> 19 INFO dfs.DataNode: <*> Starting thread to transfer block blk_-1608999687919862906 to <*> <*>",
+        "[T12] \u00d71       081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010",
+        "[T13] \u00d71       081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010",
+        "",
+        "verbatim (highest salience):",
+        "  [0.54] 081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010",
+        "  [0.54] 081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010"
+      ]
+    },
+    {
+      "name": "jobs",
+      "difficulty": "medium",
+      "source": "JobHunter production DB \u2014 33,626 scraped postings",
+      "records": 4000,
+      "tokens_before": 543687,
+      "extractor": "jsonrec",
+      "confidence": 0.3139,
+      "guarantee": "lossless",
+      "patterns": [
+        {
+          "label": "S1",
+          "count": 4000,
+          "pattern": "{company, discovered_at, location, posted_at, title, url}"
+        }
+      ],
+      "total_patterns": 1,
+      "sweep": [
+        {
+          "budget": null,
+          "tokens_after": 396863,
+          "saved_pct": 27.01,
+          "count_conservation": 1.0,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": true
+        },
+        {
+          "budget": 4000,
+          "tokens_after": 74316,
+          "saved_pct": 86.33,
+          "count_conservation": 0.012,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 1500,
+          "tokens_after": 71996,
+          "saved_pct": 86.76,
+          "count_conservation": 0.0045,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 800,
+          "tokens_after": 71336,
+          "saved_pct": 86.88,
+          "count_conservation": 0.0025,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 400,
+          "tokens_after": 70895,
+          "saved_pct": 86.96,
+          "count_conservation": 0.001,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 200,
+          "tokens_after": 70749,
+          "saved_pct": 86.99,
+          "count_conservation": 0.0005,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": false
+        }
+      ],
+      "sample_input": [
+        "{\"company\":\"doordash\",\"title\":\"Account Development Executive\",\"location\":\"Atlanta, GA; Denver, CO; Charlotte, NC; Charleston, SC; Washington D.C.; Raleigh, NC\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7493757\",\"posted_at\":\"2026-04-01T16:02:25-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.551566\"}",
+        "{\"company\":\"doordash\",\"title\":\"Account Executive\",\"location\":\"Tempe, AZ; Dallas, TX; Indianapolis, IN; Kansas City, MO; Richmond, VA; St. Louis, MO; Oklahoma City, OK; New Orleans, LA; Charleston, SC\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7467955\",\"posted_at\":\"2026-04-01T15:59:51-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.553931\"}",
+        "{\"company\":\"doordash\",\"title\":\"Account Executive, Emerging Markets\",\"location\":\"Madison, WI; Oklahoma, OK; St. Paul, MN; Kansas City, MO; Atlanta, GA; Milwaukee, WI; Chicago, IL; Las Vegas, NV\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7467624\",\"posted_at\":\"2026-04-01T16:00:17-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.554974\"}",
+        "{\"company\":\"doordash\",\"title\":\"Account Executive, Emerging Markets\",\"location\":\"Seattle, WA; Boston, MA\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7473745\",\"posted_at\":\"2026-04-01T16:00:16-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.556092\"}",
+        "{\"company\":\"doordash\",\"title\":\"Account Executive - Field Sales, New Verticals\",\"location\":\"Dallas, TX; Birmingham Alabama; Buffalo, NY; Rochester, NY; Nashville, TN\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7561726\",\"posted_at\":\"2026-04-01T15:59:00-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.557069\"}"
+      ],
+      "sample_output": [
+        "\u2500\u2500 4,000 records \u00b7 1 patterns \u00b7 extractor=jsonrec \u2500\u2500",
+        "S1 fields: company, discovered_at, location, posted_at, title, url",
+        "company dictionary (12 entries):",
+        "  @0 apple",
+        "  @1 baseten",
+        "  @2 braintrust",
+        "  @3 coreweave",
+        "  @4 cvshealth",
+        "  @5 doordash",
+        "  @6 glean",
+        "  @7 netflix",
+        "  @8 nuro",
+        "  @9 otterai",
+        "  @10 salesforce",
+        "  @11 uber",
+        "location dictionary (1,072 entries):",
+        "  @0  Afton, TX",
+        "  @1  Livingston, NJ / New York, NY / Sunnyvale, CA / Bellevue, WA"
+      ]
+    },
+    {
+      "name": "mixed",
+      "difficulty": "hard",
+      "source": "hdfs + jobs interleaved \u2014 simulates a multi-service stream",
+      "records": 3000,
+      "tokens_before": 274428,
+      "extractor": "hybrid",
+      "confidence": 0.719,
+      "guarantee": "lossy",
+      "patterns": [
+        {
+          "label": "T1",
+          "count": 1141,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$DataXceiver: Receiving block <*> src: <*> dest: <*>"
+        },
+        {
+          "label": "S1",
+          "count": 1008,
+          "pattern": "{company, discovered_at, location, posted_at, title, url}"
+        },
+        {
+          "label": "T2",
+          "count": 404,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$DataXceiver: <*> Served block <*> to <*>"
+        },
+        {
+          "label": "T3",
+          "count": 385,
+          "pattern": "081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: <*> <*>"
+        },
+        {
+          "label": "T4",
+          "count": 19,
+          "pattern": "081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.addStoredBlock: blockMap updated: <*> is added to <*> size <*>"
+        },
+        {
+          "label": "T5",
+          "count": 12,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$PacketResponder: PacketResponder <*> for block <*> terminating"
+        },
+        {
+          "label": "T6",
+          "count": 12,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$PacketResponder: Received block <*> of size <*> from <*>"
+        },
+        {
+          "label": "T7",
+          "count": 7,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$DataXceiver: Received block blk_-1608999687919862906 src: <*> dest: <*> of size 91178"
+        },
+        {
+          "label": "T8",
+          "count": 4,
+          "pattern": "081109 <*> <*> INFO dfs.DataNode$DataTransfer: <*> block blk_-1608999687919862906 to <*>"
+        },
+        {
+          "label": "T9",
+          "count": 2,
+          "pattern": "081109 203521 19 INFO <*> <*> <*> <*> to <*> <*> <*> <*> <*> 10.251.71.193:50010"
+        },
+        {
+          "label": "T10",
+          "count": 2,
+          "pattern": "081109 <*> 19 INFO dfs.FSNamesystem: BLOCK* ask <*> to replicate blk_-1608999687919862906 to datanode(s) <*> <*>"
+        },
+        {
+          "label": "T11",
+          "count": 2,
+          "pattern": "081109 <*> 19 INFO dfs.DataNode: <*> Starting thread to transfer block blk_-1608999687919862906 to <*> <*>"
+        },
+        {
+          "label": "T12",
+          "count": 1,
+          "pattern": "081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010"
+        },
+        {
+          "label": "T13",
+          "count": 1,
+          "pattern": "081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010"
+        }
+      ],
+      "total_patterns": 14,
+      "sweep": [
+        {
+          "budget": null,
+          "tokens_after": 99639,
+          "saved_pct": 63.69,
+          "count_conservation": 1.0,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": true
+        },
+        {
+          "budget": 4000,
+          "tokens_after": 14660,
+          "saved_pct": 94.66,
+          "count_conservation": 0.675,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 1500,
+          "tokens_after": 12292,
+          "saved_pct": 95.52,
+          "count_conservation": 0.666,
+          "pattern_coverage": 1.0,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 800,
+          "tokens_after": 11575,
+          "saved_pct": 95.78,
+          "count_conservation": 0.6633,
+          "pattern_coverage": 0.8571,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 400,
+          "tokens_after": 11204,
+          "saved_pct": 95.92,
+          "count_conservation": 0.6537,
+          "pattern_coverage": 0.4286,
+          "critical_recall": 1.0,
+          "passed": false
+        },
+        {
+          "budget": 200,
+          "tokens_after": 11019,
+          "saved_pct": 95.98,
+          "count_conservation": 0.515,
+          "pattern_coverage": 0.2143,
+          "critical_recall": 1.0,
+          "passed": false
+        }
+      ],
+      "sample_input": [
+        "081109 203518 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.19.102:54106 dest: /10.250.19.102:50010",
+        "{\"company\":\"doordash\",\"title\":\"Account Development Executive\",\"location\":\"Atlanta, GA; Denver, CO; Charlotte, NC; Charleston, SC; Washington D.C.; Raleigh, NC\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7493757\",\"posted_at\":\"2026-04-01T16:02:25-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.551566\"}",
+        "081109 203518 35 INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: /mnt/hadoop/mapred/system/job_200811092030_0001/job.jar. blk_-1608999687919862906",
+        "081109 203519 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.10.6:40524 dest: /10.250.10.6:50010",
+        "081109 203519 145 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.14.224:42420 dest: /10.250.14.224:50010"
+      ],
+      "sample_output": [
+        "\u2500\u2500 3,000 records \u00b7 14 patterns \u00b7 extractor=hybrid \u2500\u2500",
+        "S1 fields: company, discovered_at, location, posted_at, title, url",
+        "company dictionary (3 entries):",
+        "  @0 apple",
+        "  @1 doordash",
+        "  @2 uber",
+        "location dictionary (357 entries):",
+        "  @0 Aarhus, Denmark",
+        "  @1 Akron, OH",
+        "  @2 Akron, Ohio",
+        "  @3 Albuquerque, NM",
+        "  @4 Alexandria, VA",
+        "  @5 Amsterdam, Netherlands",
+        "  @6 Athens, Greece",
+        "  @7 Atlanta, GA",
+        "  @8 Atlanta, GA; Austin, TX; Boston, MA; Chicago, IL; Denver, CO; Los Angeles, CA; New York, NY; Tempe, AZ; San Francisco, CA; Seattle, WA; Washington D.C.",
+        "  @9 Atlanta, GA; Chicago, IL",
+        "  @10 Atlanta, GA; Chicago, IL; Los Angeles, CA; New York, NY; San Francisco, CA"
+      ]
+    }
+  ],
+  "scope": [],
+  "extractor_matrix": [
+    {
+      "payload": "hdfs",
+      "scores": {
+        "lines": 0.9633,
+        "jsonrec": 0.0,
+        "hybrid": 0.0
+      }
+    },
+    {
+      "payload": "jobs",
+      "scores": {
+        "jsonrec": 0.3139,
+        "lines": 0.0,
+        "hybrid": 0.0
+      }
+    },
+    {
+      "payload": "mixed",
+      "scores": {
+        "hybrid": 0.719,
+        "lines": 0.63,
+        "jsonrec": 0.0
+      }
+    },
+    {
+      "payload": "prose (README)",
+      "scores": {
+        "lines": 0.093,
+        "jsonrec": 0.0,
+        "hybrid": 0.0
+      }
+    },
+    {
+      "payload": "source code",
+      "scores": {
+        "lines": 0.0492,
+        "jsonrec": 0.0,
+        "hybrid": 0.0
+      }
+    }
+  ],
+  "flare": {
+    "baseline_tokens": 4173,
+    "baseline_lines_seen": 50,
+    "total_lines": 250,
+    "rows": [
+      {
+        "budget": 800,
+        "tokens": 786,
+        "lines_seen": 250,
+        "patterns": 11,
+        "guarantee": "lossy"
+      },
+      {
+        "budget": 400,
+        "tokens": 398,
+        "lines_seen": 250,
+        "patterns": 11,
+        "guarantee": "lossy"
+      },
+      {
+        "budget": 200,
+        "tokens": 224,
+        "lines_seen": 250,
+        "patterns": 11,
+        "guarantee": "lossy"
+      }
+    ]
+  },
+  "frontier": [
+    {
+      "level": "budget=1500",
+      "payload_tokens": 1096,
+      "relevance": 5.0,
+      "specificity": 4.25,
+      "actionability": 3.875,
+      "n": 8
+    },
+    {
+      "level": "baseline",
+      "payload_tokens": 18481,
+      "relevance": 5.0,
+      "specificity": 4.375,
+      "actionability": 4.0,
+      "n": 8
+    },
+    {
+      "level": "budget=None",
+      "payload_tokens": 1107,
+      "relevance": 5.0,
+      "specificity": 4.125,
+      "actionability": 4.0,
+      "n": 8
+    },
+    {
+      "level": "budget=800",
+      "payload_tokens": 818,
+      "relevance": 5.0,
+      "specificity": 4.0,
+      "actionability": 3.75,
+      "n": 8
+    },
+    {
+      "level": "budget=400",
+      "payload_tokens": 398,
+      "relevance": 5.0,
+      "specificity": 4.0,
+      "actionability": 3.875,
+      "n": 8
+    },
+    {
+      "level": "budget=200",
+      "payload_tokens": 200,
+      "relevance": 5.0,
+      "specificity": 4.0,
+      "actionability": 4.0,
+      "n": 8
+    }
+  ]
+}

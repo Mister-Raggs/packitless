@@ -10,9 +10,8 @@ __pycache__/
 corpora/*.log
 corpora/*.jsonl
 
-# Results
-results/
-*.png
-
 # Built page (regenerate: export_report.py && build_page.py)
 results/index.html
+*.png
+
+# Measurements ARE the evidence — results/*.json is committed deliberately.

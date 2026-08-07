@@ -1,0 +1,434 @@
+[
+  {
+    "incident": 1,
+    "level": "budget=1500",
+    "payload_tokens": 1366,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 1,
+    "level": "baseline",
+    "payload_tokens": 18094,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 0,
+    "level": "baseline",
+    "payload_tokens": 16813,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 0,
+    "level": "budget=None",
+    "payload_tokens": 1569,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 0,
+    "level": "budget=800",
+    "payload_tokens": 786,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 0,
+    "level": "budget=400",
+    "payload_tokens": 398,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 0,
+    "level": "budget=1500",
+    "payload_tokens": 1477,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 0,
+    "level": "budget=200",
+    "payload_tokens": 224,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 1,
+    "level": "budget=None",
+    "payload_tokens": 1366,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 1,
+    "level": "budget=800",
+    "payload_tokens": 787,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "error": null
+  },
+  {
+    "incident": 1,
+    "level": "budget=400",
+    "payload_tokens": 370,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "error": null
+  },
+  {
+    "incident": 1,
+    "level": "budget=200",
+    "payload_tokens": 209,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 2,
+    "level": "baseline",
+    "payload_tokens": 18817,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 2,
+    "level": "budget=1500",
+    "payload_tokens": 1104,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 2,
+    "level": "budget=200",
+    "payload_tokens": 209,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 2,
+    "level": "budget=800",
+    "payload_tokens": 820,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 2,
+    "level": "budget=None",
+    "payload_tokens": 1104,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 2,
+    "level": "budget=400",
+    "payload_tokens": 359,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 3,
+    "level": "budget=1500",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 3,
+    "level": "baseline",
+    "payload_tokens": 19020,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 3,
+    "level": "budget=400",
+    "payload_tokens": 415,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 3,
+    "level": "budget=800",
+    "payload_tokens": 841,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 3,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 3,
+    "level": "budget=None",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 4,
+    "level": "budget=1500",
+    "payload_tokens": 1170,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 4,
+    "level": "baseline",
+    "payload_tokens": 18446,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 4,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 4,
+    "level": "budget=800",
+    "payload_tokens": 783,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 4,
+    "level": "budget=400",
+    "payload_tokens": 396,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 4,
+    "level": "budget=None",
+    "payload_tokens": 1170,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 5,
+    "level": "baseline",
+    "payload_tokens": 19071,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 5,
+    "level": "budget=1500",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 5,
+    "level": "budget=None",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 5,
+    "level": "budget=400",
+    "payload_tokens": 415,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 6,
+    "level": "budget=1500",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 6,
+    "level": "baseline",
+    "payload_tokens": 18727,
+    "relevance": 5.0,
+    "specificity": 5.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 5,
+    "level": "budget=800",
+    "payload_tokens": 841,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 5,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 6,
+    "level": "budget=800",
+    "payload_tokens": 841,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 6,
+    "level": "budget=400",
+    "payload_tokens": 415,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 6,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 7,
+    "level": "baseline",
+    "payload_tokens": 18862,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 6,
+    "level": "budget=None",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 7,
+    "level": "budget=1500",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "error": null
+  },
+  {
+    "incident": 7,
+    "level": "budget=None",
+    "payload_tokens": 912,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 7,
+    "level": "budget=800",
+    "payload_tokens": 841,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 3.0,
+    "error": null
+  },
+  {
+    "incident": 7,
+    "level": "budget=400",
+    "payload_tokens": 415,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  },
+  {
+    "incident": 7,
+    "level": "budget=200",
+    "payload_tokens": 191,
+    "relevance": 5.0,
+    "specificity": 4.0,
+    "actionability": 4.0,
+    "error": null
+  }
+]
