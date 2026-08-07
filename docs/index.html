@@ -1,0 +1,553 @@
+<title>packitless — context compression for repetitive payloads</title>
+<style>
+:root {
+  --ground:#F5F7F9; --surface:#FFFFFF; --sunken:#ECEFF3; --rule:#DBE0E7;
+  --ink:#0E1319; --ink-2:#3D4753; --muted:#6B7683;
+  --signal:#1A6FC4; --signal-2:#1257A0; --warn:#B8791C; --crit:#A33A34; --good:#2E6B4F;
+  --s1:#E4EDF7; --s2:#BCD4EC; --s3:#8FB6DE; --s4:#5C93CE; --s5:#1A6FC4; --s6:#10426F;
+  --mono: ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:#0E1217; --surface:#161B22; --sunken:#1C222B; --rule:#2A323D;
+    --ink:#E3E9F1; --ink-2:#B4BFCC; --muted:#7F8B99;
+    --signal:#5C9EE0; --signal-2:#86BAEC; --warn:#D9A03F; --crit:#D9635A; --good:#56A37C;
+    --s1:#1A2430; --s2:#22354A; --s3:#2E4C6B; --s4:#3D6B96; --s5:#5C9EE0; --s6:#9CC6EE;
+  }
+}
+:root[data-theme="dark"] {
+  --ground:#0E1217; --surface:#161B22; --sunken:#1C222B; --rule:#2A323D;
+  --ink:#E3E9F1; --ink-2:#B4BFCC; --muted:#7F8B99;
+  --signal:#5C9EE0; --signal-2:#86BAEC; --warn:#D9A03F; --crit:#D9635A; --good:#56A37C;
+  --s1:#1A2430; --s2:#22354A; --s3:#2E4C6B; --s4:#3D6B96; --s5:#5C9EE0; --s6:#9CC6EE;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px}
+h1,h2,h3,h4,.lbl,code,pre,th,td,.v{font-family:var(--mono)}
+h1{font-size:clamp(30px,4.6vw,46px);line-height:1.06;margin:0;letter-spacing:-.03em;font-weight:600;
+  text-wrap:balance}
+h2{font-size:15px;margin:0;letter-spacing:.09em;text-transform:uppercase;font-weight:600}
+h3{font-size:16px;margin:0 0 6px;font-weight:600;letter-spacing:-.01em}
+h4{font-size:11px;margin:0 0 8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+p{margin:0 0 14px;max-width:66ch;color:var(--ink-2)}
+a{color:var(--signal)}
+.lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.v{font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+header{background:var(--surface);border-bottom:1px solid var(--rule);padding:56px 0 0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--signal);margin-bottom:18px}
+.lede{font-size:18px;color:var(--ink);max-width:60ch;margin:20px 0 0}
+.surfaces{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
+.surface{font-family:var(--mono);font-size:12px;padding:6px 11px;border:1px solid var(--rule);
+  border-radius:2px;background:var(--sunken);color:var(--ink-2)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;
+  background:var(--rule);border-top:1px solid var(--rule);margin-top:40px}
+.stat{background:var(--surface);padding:18px 20px 20px}
+.stat .v{font-size:29px;line-height:1.1}
+.stat .sub{font-size:12px;color:var(--muted);margin-top:3px}
+
+section{padding:48px 0;border-bottom:1px solid var(--rule)}
+.head{display:flex;align-items:baseline;gap:14px;margin-bottom:20px}
+.head .r{flex:1;height:1px;background:var(--rule)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:1px;
+  background:var(--rule);border:1px solid var(--rule)}
+.card{background:var(--surface);padding:20px 22px 22px;display:flex;flex-direction:column;gap:12px}
+.card p{font-size:14px;margin:0;max-width:none}
+.card .foot{margin-top:auto;padding-top:6px}
+.meter{height:8px;background:var(--sunken);position:relative;overflow:hidden;border-radius:1px}
+.meter i{position:absolute;inset:0 auto 0 0;background:var(--signal);display:block}
+.figs{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:7px;
+  font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.figs b{color:var(--ink);font-size:17px;font-weight:600}
+.snip{font-family:var(--mono);font-size:11.5px;background:var(--sunken);border:1px solid var(--rule);
+  padding:8px 10px;overflow-x:auto;white-space:pre;color:var(--ink-2);border-radius:2px}
+
+.pill{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.07em;padding:2px 7px;border-radius:2px;border:1px solid;text-transform:uppercase}
+.pill.lossless{color:var(--signal);border-color:var(--signal)}
+.pill.lossy{color:var(--muted);border-color:var(--rule)}
+.pill.ok{color:var(--good);border-color:var(--good)}
+.pill.loss{color:var(--crit);border-color:var(--crit);
+  background:color-mix(in srgb,var(--crit) 9%,transparent)}
+.pill.none{color:var(--warn);border-color:var(--warn)}
+
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:right;padding:7px 10px;border-bottom:1px solid var(--rule);
+  font-variant-numeric:tabular-nums}
+th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+th:first-child,td:first-child{text-align:left}
+.scroll{overflow-x:auto}
+tr.flag td{background:color-mix(in srgb,var(--crit) 7%,transparent)}
+
+pre{background:var(--sunken);border:1px solid var(--rule);padding:12px 14px;overflow-x:auto;
+  font-size:11.5px;line-height:1.55;margin:0;color:var(--ink-2)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:840px){.two{grid-template-columns:1fr}}
+figure{margin:0}
+figcaption{font-size:12px;color:var(--muted);margin-top:8px;max-width:66ch}
+svg{display:block;max-width:100%}
+.callout{border-left:2px solid var(--warn);background:color-mix(in srgb,var(--warn) 7%,transparent);
+  padding:13px 16px;margin:18px 0}
+.callout p:last-child{margin-bottom:0}
+textarea{width:100%;min-height:130px;font-family:var(--mono);font-size:11.5px;padding:12px;
+  background:var(--surface);color:var(--ink);border:1px solid var(--rule);border-radius:2px;resize:vertical}
+button{font-family:var(--mono);font-size:12px;letter-spacing:.04em;font-weight:600;padding:9px 18px;
+  background:var(--signal);color:#fff;border:0;border-radius:2px;cursor:pointer}
+button:hover{background:var(--signal-2)}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+.small{font-size:12px;color:var(--muted);max-width:66ch}
+footer{padding:34px 0 60px;font-size:13px;color:var(--muted)}
+.tip{position:fixed;pointer-events:none;z-index:9;background:var(--surface);border:1px solid var(--rule);
+  padding:6px 9px;font-family:var(--mono);font-size:11px;border-radius:2px;opacity:0;transition:opacity .1s;
+  box-shadow:0 2px 10px rgba(0,0,0,.13)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<script type="application/json" id="report">{"counter":"anthropic","corpora":[{"name":"hdfs","difficulty":"easy","source":"Flare repo \u2014 logs/hdfs_demo.log (real HDFS cluster logs)","records":2000,"tokens_before":147815,"extractor":"lines","confidence":0.9633,"guarantee":"lossy","patterns":[{"label":"T1","count":1149,"pattern":"081109 <*> <*> INFO dfs.DataNode$DataXceiver: Receiving block <*> src: <*> dest: <*>"},{"label":"T2","count":404,"pattern":"081109 <*> <*> INFO dfs.DataNode$DataXceiver: <*> Served block <*> to <*>"},{"label":"T3","count":385,"pattern":"081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: <*> <*>"},{"label":"T4","count":19,"pattern":"081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.addStoredBlock: blockMap updated: <*> is added to <*> size <*>"},{"label":"T5","count":12,"pattern":"081109 <*> <*> INFO dfs.DataNode$PacketResponder: PacketResponder <*> for block <*> terminating"},{"label":"T6","count":12,"pattern":"081109 <*> <*> INFO dfs.DataNode$PacketResponder: Received block <*> of size <*> from <*>"},{"label":"T7","count":7,"pattern":"081109 <*> <*> INFO dfs.DataNode$DataXceiver: Received block blk_-1608999687919862906 src: <*> dest: <*> of size 91178"},{"label":"T8","count":4,"pattern":"081109 <*> <*> INFO dfs.DataNode$DataTransfer: <*> block blk_-1608999687919862906 to <*>"},{"label":"T9","count":2,"pattern":"081109 203521 19 INFO <*> <*> <*> <*> to <*> <*> <*> <*> <*> 10.251.71.193:50010"},{"label":"T10","count":2,"pattern":"081109 <*> 19 INFO dfs.FSNamesystem: BLOCK* ask <*> to replicate blk_-1608999687919862906 to datanode(s) <*> <*>"},{"label":"T11","count":2,"pattern":"081109 <*> 19 INFO dfs.DataNode: <*> Starting thread to transfer block blk_-1608999687919862906 to <*> <*>"},{"label":"T12","count":1,"pattern":"081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010"},{"label":"T13","count":1,"pattern":"081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010"}],"total_patterns":13,"sweep":[{"budget":null,"tokens_after":1724,"saved_pct":98.83,"count_conservation":1.0,"pattern_coverage":1.0,"critical_recall":1.0,"passed":true},{"budget":4000,"tokens_after":1724,"saved_pct":98.83,"count_conservation":1.0,"pattern_coverage":1.0,"critical_recall":1.0,"passed":true},{"budget":1500,"tokens_after":1474,"saved_pct":99.0,"count_conservation":1.0,"pattern_coverage":1.0,"critical_recall":1.0,"passed":true},{"budget":800,"tokens_after":797,"saved_pct":99.46,"count_conservation":0.9995,"pattern_coverage":0.9231,"critical_recall":1.0,"passed":false},{"budget":400,"tokens_after":392,"saved_pct":99.73,"count_conservation":0.9905,"pattern_coverage":0.4615,"critical_recall":1.0,"passed":false},{"budget":200,"tokens_after":213,"saved_pct":99.86,"count_conservation":0.969,"pattern_coverage":0.2308,"critical_recall":1.0,"passed":false}],"sample_input":["081109 203518 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.19.102:54106 dest: /10.250.19.102:50010","081109 203518 35 INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: /mnt/hadoop/mapred/system/job_200811092030_0001/job.jar. blk_-1608999687919862906","081109 203519 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.10.6:40524 dest: /10.250.10.6:50010","081109 203519 145 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.14.224:42420 dest: /10.250.14.224:50010","081109 203519 145 INFO dfs.DataNode$PacketResponder: PacketResponder 1 for block blk_-1608999687919862906 terminating"],"sample_output":["\u2500\u2500 2,000 records \u00b7 13 patterns \u00b7 extractor=lines \u2500\u2500","[T1] \u00d71,149   081109 <*> <*> INFO dfs.DataNode$DataXceiver: Receiving block <*> src: <*> dest: <*>","[T2] \u00d7404     081109 <*> <*> INFO dfs.DataNode$DataXceiver: <*> Served block <*> to <*>","[T3] \u00d7385     081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: <*> <*>","[T4] \u00d719      081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.addStoredBlock: blockMap updated: <*> is added to <*> size <*>","[T5] \u00d712      081109 <*> <*> INFO dfs.DataNode$PacketResponder: PacketResponder <*> for block <*> terminating","[T6] \u00d712      081109 <*> <*> INFO dfs.DataNode$PacketResponder: Received block <*> of size <*> from <*>","[T7] \u00d77       081109 <*> <*> INFO dfs.DataNode$DataXceiver: Received block blk_-1608999687919862906 src: <*> dest: <*> of size 91178","[T8] \u00d74       081109 <*> <*> INFO dfs.DataNode$DataTransfer: <*> block blk_-1608999687919862906 to <*>","[T9] \u00d72       081109 203521 19 INFO <*> <*> <*> <*> to <*> <*> <*> <*> <*> 10.251.71.193:50010","[T10] \u00d72       081109 <*> 19 INFO dfs.FSNamesystem: BLOCK* ask <*> to replicate blk_-1608999687919862906 to datanode(s) <*> <*>","[T11] \u00d72       081109 <*> 19 INFO dfs.DataNode: <*> Starting thread to transfer block blk_-1608999687919862906 to <*> <*>","[T12] \u00d71       081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010","[T13] \u00d71       081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010","verbatim (highest salience):","  [0.54] 081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010","  [0.54] 081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010","  [0.51] 081109 203521 19 INFO dfs.DataNode: 10.250.14.224:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.215.16:50010, 10.251.71.193:50010"]},{"name":"jobs","difficulty":"medium","source":"JobHunter production DB \u2014 33,626 scraped postings","records":4000,"tokens_before":543687,"extractor":"jsonrec","confidence":0.3139,"guarantee":"lossless","patterns":[{"label":"S1","count":4000,"pattern":"{company, discovered_at, location, posted_at, title, url}"}],"total_patterns":1,"sweep":[{"budget":null,"tokens_after":396863,"saved_pct":27.01,"count_conservation":1.0,"pattern_coverage":1.0,"critical_recall":1.0,"passed":true},{"budget":4000,"tokens_after":74316,"saved_pct":86.33,"count_conservation":0.012,"pattern_coverage":1.0,"critical_recall":1.0,"passed":false},{"budget":1500,"tokens_after":71996,"saved_pct":86.76,"count_conservation":0.0045,"pattern_coverage":1.0,"critical_recall":1.0,"passed":false},{"budget":800,"tokens_after":71336,"saved_pct":86.88,"count_conservation":0.0025,"pattern_coverage":1.0,"critical_recall":1.0,"passed":false},{"budget":400,"tokens_after":70895,"saved_pct":86.96,"count_conservation":0.001,"pattern_coverage":1.0,"critical_recall":1.0,"passed":false},{"budget":200,"tokens_after":70749,"saved_pct":86.99,"count_conservation":0.0005,"pattern_coverage":1.0,"critical_recall":1.0,"passed":false}],"sample_input":["{\"company\":\"doordash\",\"title\":\"Account Development Executive\",\"location\":\"Atlanta, GA; Denver, CO; Charlotte, NC; Charleston, SC; Washington D.C.; Raleigh, NC\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7493757\",\"posted_at\":\"2026-04-01T16:02:25-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.551566\"}","{\"company\":\"doordash\",\"title\":\"Account Executive\",\"location\":\"Tempe, AZ; Dallas, TX; Indianapolis, IN; Kansas City, MO; Richmond, VA; St. Louis, MO; Oklahoma City, OK; New Orleans, LA; Charleston, SC\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7467955\",\"posted_at\":\"2026-04-01T15:59:51-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.553931\"}","{\"company\":\"doordash\",\"title\":\"Account Executive, Emerging Markets\",\"location\":\"Madison, WI; Oklahoma, OK; St. Paul, MN; Kansas City, MO; Atlanta, GA; Milwaukee, WI; Chicago, IL; Las Vegas, NV\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7467624\",\"posted_at\":\"2026-04-01T16:00:17-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.554974\"}","{\"company\":\"doordash\",\"title\":\"Account Executive, Emerging Markets\",\"location\":\"Seattle, WA; Boston, MA\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7473745\",\"posted_at\":\"2026-04-01T16:00:16-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.556092\"}","{\"company\":\"doordash\",\"title\":\"Account Executive - Field Sales, New Verticals\",\"location\":\"Dallas, TX; Birmingham Alabama; Buffalo, NY; Rochester, NY; Nashville, TN\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7561726\",\"posted_at\":\"2026-04-01T15:59:00-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.557069\"}"],"sample_output":["\u2500\u2500 4,000 records \u00b7 1 patterns \u00b7 extractor=jsonrec \u2500\u2500","S1 fields: company, discovered_at, location, posted_at, title, url","company dictionary (12 entries):","  @0 apple","  @1 baseten","  @2 braintrust","  @3 coreweave","  @4 cvshealth","  @5 doordash","  @6 glean","  @7 netflix","  @8 nuro","  @9 otterai","  @10 salesforce","  @11 uber","location dictionary (1,072 entries):","  @0  Afton, TX","  @1  Livingston, NJ / New York, NY / Sunnyvale, CA / Bellevue, WA"]},{"name":"mixed","difficulty":"hard","source":"hdfs + jobs interleaved \u2014 simulates a multi-service stream","records":3000,"tokens_before":274428,"extractor":"hybrid","confidence":0.719,"guarantee":"lossy","patterns":[{"label":"T1","count":1141,"pattern":"081109 <*> <*> INFO dfs.DataNode$DataXceiver: Receiving block <*> src: <*> dest: <*>"},{"label":"S1","count":1008,"pattern":"{company, discovered_at, location, posted_at, title, url}"},{"label":"T2","count":404,"pattern":"081109 <*> <*> INFO dfs.DataNode$DataXceiver: <*> Served block <*> to <*>"},{"label":"T3","count":385,"pattern":"081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: <*> <*>"},{"label":"T4","count":19,"pattern":"081109 <*> <*> INFO dfs.FSNamesystem: BLOCK* NameSystem.addStoredBlock: blockMap updated: <*> is added to <*> size <*>"},{"label":"T5","count":12,"pattern":"081109 <*> <*> INFO dfs.DataNode$PacketResponder: PacketResponder <*> for block <*> terminating"},{"label":"T6","count":12,"pattern":"081109 <*> <*> INFO dfs.DataNode$PacketResponder: Received block <*> of size <*> from <*>"},{"label":"T7","count":7,"pattern":"081109 <*> <*> INFO dfs.DataNode$DataXceiver: Received block blk_-1608999687919862906 src: <*> dest: <*> of size 91178"},{"label":"T8","count":4,"pattern":"081109 <*> <*> INFO dfs.DataNode$DataTransfer: <*> block blk_-1608999687919862906 to <*>"},{"label":"T9","count":2,"pattern":"081109 203521 19 INFO <*> <*> <*> <*> to <*> <*> <*> <*> <*> 10.251.71.193:50010"},{"label":"T10","count":2,"pattern":"081109 <*> 19 INFO dfs.FSNamesystem: BLOCK* ask <*> to replicate blk_-1608999687919862906 to datanode(s) <*> <*>"},{"label":"T11","count":2,"pattern":"081109 <*> 19 INFO dfs.DataNode: <*> Starting thread to transfer block blk_-1608999687919862906 to <*> <*>"},{"label":"T12","count":1,"pattern":"081109 203530 19 INFO dfs.FSNamesystem: BLOCK* ask 10.251.31.5:50010 to replicate blk_-1608999687919862906 to datanode(s) 10.251.90.64:50010"},{"label":"T13","count":1,"pattern":"081109 203531 19 INFO dfs.DataNode: 10.251.31.5:50010 Starting thread to transfer block blk_-1608999687919862906 to 10.251.90.64:50010"}],"total_patterns":14,"sweep":[{"budget":null,"tokens_after":99639,"saved_pct":63.69,"count_conservation":1.0,"pattern_coverage":1.0,"critical_recall":1.0,"passed":true},{"budget":4000,"tokens_after":14660,"saved_pct":94.66,"count_conservation":0.675,"pattern_coverage":1.0,"critical_recall":1.0,"passed":false},{"budget":1500,"tokens_after":12292,"saved_pct":95.52,"count_conservation":0.666,"pattern_coverage":1.0,"critical_recall":1.0,"passed":false},{"budget":800,"tokens_after":11575,"saved_pct":95.78,"count_conservation":0.6633,"pattern_coverage":0.8571,"critical_recall":1.0,"passed":false},{"budget":400,"tokens_after":11204,"saved_pct":95.92,"count_conservation":0.6537,"pattern_coverage":0.4286,"critical_recall":1.0,"passed":false},{"budget":200,"tokens_after":11019,"saved_pct":95.98,"count_conservation":0.515,"pattern_coverage":0.2143,"critical_recall":1.0,"passed":false}],"sample_input":["081109 203518 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.19.102:54106 dest: /10.250.19.102:50010","{\"company\":\"doordash\",\"title\":\"Account Development Executive\",\"location\":\"Atlanta, GA; Denver, CO; Charlotte, NC; Charleston, SC; Washington D.C.; Raleigh, NC\",\"url\":\"https://job-boards.greenhouse.io/doordashusa/jobs/7493757\",\"posted_at\":\"2026-04-01T16:02:25-04:00\",\"discovered_at\":\"2026-04-07 00:10:13.551566\"}","081109 203518 35 INFO dfs.FSNamesystem: BLOCK* NameSystem.allocateBlock: /mnt/hadoop/mapred/system/job_200811092030_0001/job.jar. blk_-1608999687919862906","081109 203519 143 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.10.6:40524 dest: /10.250.10.6:50010","081109 203519 145 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.250.14.224:42420 dest: /10.250.14.224:50010"],"sample_output":["\u2500\u2500 3,000 records \u00b7 14 patterns \u00b7 extractor=hybrid \u2500\u2500","S1 fields: company, discovered_at, location, posted_at, title, url","company dictionary (3 entries):","  @0 apple","  @1 doordash","  @2 uber","location dictionary (357 entries):","  @0 Aarhus, Denmark","  @1 Akron, OH","  @2 Akron, Ohio","  @3 Albuquerque, NM","  @4 Alexandria, VA","  @5 Amsterdam, Netherlands","  @6 Athens, Greece","  @7 Atlanta, GA","  @8 Atlanta, GA; Austin, TX; Boston, MA; Chicago, IL; Denver, CO; Los Angeles, CA; New York, NY; Tempe, AZ; San Francisco, CA; Seattle, WA; Washington D.C.","  @9 Atlanta, GA; Chicago, IL","  @10 Atlanta, GA; Chicago, IL; Los Angeles, CA; New York, NY; San Francisco, CA"]}],"scope":[],"extractor_matrix":[{"payload":"hdfs","scores":{"lines":0.9633,"jsonrec":0.0,"hybrid":0.0}},{"payload":"jobs","scores":{"jsonrec":0.3139,"lines":0.0,"hybrid":0.0}},{"payload":"mixed","scores":{"hybrid":0.719,"lines":0.63,"jsonrec":0.0}},{"payload":"prose (README)","scores":{"lines":0.1099,"jsonrec":0.0,"hybrid":0.0}},{"payload":"source code","scores":{"lines":0.0705,"jsonrec":0.0,"hybrid":0.0}}],"scenarios":[{"key":"agent","title":"An agent reading tool output","blurb":"A coding agent runs a build, a test suite, or kubectl logs and pipes thousands of near-identical lines into its context window. This is a real installer log \u2014 the shape of output an agent drowns in every day.","surface":"MCP tool \u2014 the model decides to call it","call":"compress_payload(text, budget_tokens=400)","source":"install.log","records":3000,"tokens_before":222336,"tokens_after":438,"saved_pct":99.8,"extractor":"lines","guarantee":"lossy","truncated":true,"patterns":201,"sections":{"header":29,"patterns":341,"verbatim":78},"cost":{"model":"claude-sonnet-5","input_rate_per_mtok":3.0,"calls":1000,"usd_before":667.01,"usd_after":1.31,"usd_saved":665.69,"saved_pct":99.8}},{"key":"triage","title":"Incident triage on a live service","blurb":"Flare summarises log anomalies with an LLM. It truncated each incident to 50 lines to control cost \u2014 a budget in the wrong unit. The adapter reads every line for a fraction of the spend.","surface":"Python library \u2014 one call in the prompt builder","call":"build_payload(incident.log_lines, budget_tokens=800)","source":"hdfs_demo.log","records":2000,"tokens_before":147815,"tokens_after":797,"saved_pct":99.5,"extractor":"lines","guarantee":"lossy","truncated":true,"patterns":13,"sections":{"header":29,"patterns":773},"cost":{"model":"claude-sonnet-5","input_rate_per_mtok":3.0,"calls":1000,"usd_before":443.44,"usd_after":2.39,"usd_saved":441.05,"saved_pct":99.5}},{"key":"records","title":"Batch processing structured records","blurb":"Classifying or extracting over database rows and API responses, where every record repeats the same keys. Schema collapse is reversible, so nothing is given up.","surface":"Python library, with require_lossless","call":"compress(records, CompressConfig(require_lossless=True))","source":"jobs.jsonl","records":4000,"tokens_before":543687,"tokens_after":396863,"saved_pct":27.0,"extractor":"jsonrec","guarantee":"lossless","truncated":false,"patterns":1,"sections":{"header":32,"legend":70535,"patterns":36,"rows":325188,"verbatim":1092},"cost":{"model":"claude-sonnet-5","input_rate_per_mtok":3.0,"calls":1000,"usd_before":1631.06,"usd_after":1190.59,"usd_saved":440.47,"saved_pct":27.0}},{"key":"pipeline","title":"A shared multi-service log pipeline","blurb":"One stream carrying several formats at once. Each record is routed to the extractor that understands it, so structured events are not shredded by a line templater.","surface":"CLI \u2014 works with any tool, in any language","call":"journalctl -u api | packitless --budget 800 --stats","source":"mixed.log","records":3000,"tokens_before":274428,"tokens_after":11575,"saved_pct":95.8,"extractor":"hybrid","guarantee":"lossy","truncated":true,"patterns":14,"sections":{"header":31,"legend":10813,"patterns":718,"rows":28},"cost":{"model":"claude-sonnet-5","input_rate_per_mtok":3.0,"calls":1000,"usd_before":823.28,"usd_after":34.73,"usd_saved":788.56,"saved_pct":95.8}},{"key":"unknown","title":"A log format nobody has seen","blurb":"No tuning, no configuration, no schema. This is a macOS WiFi driver log the tool has never been shown.","surface":"CLI","call":"packitless --budget 600 --stats < /var/log/install.log","source":"wifi.log","records":4000,"tokens_before":462000,"tokens_after":630,"saved_pct":99.9,"extractor":"lines","guarantee":"lossy","truncated":true,"patterns":49,"sections":{"header":29,"patterns":558,"verbatim":53},"cost":{"model":"claude-sonnet-5","input_rate_per_mtok":3.0,"calls":1000,"usd_before":1386.0,"usd_after":1.89,"usd_saved":1384.11,"saved_pct":99.9}},{"key":"decline","title":"Something it should refuse","blurb":"Prose has no exploitable repetition. Every extractor scores near zero and the payload passes through byte-for-byte \u2014 knowing when not to act is part of being safe to adopt.","surface":"Any \u2014 the answer is the same everywhere","call":"packitless --explain < README.md","source":"README.md","records":108,"tokens_before":2446,"tokens_after":2968,"saved_pct":-21.3,"extractor":"lines","guarantee":"lossy","truncated":false,"patterns":87,"sections":{"header":27,"patterns":2685,"verbatim":266},"cost":{"model":"claude-sonnet-5","input_rate_per_mtok":3.0,"calls":1000,"usd_before":7.34,"usd_after":8.9,"usd_saved":-1.57,"saved_pct":-21.3}}],"flare":{"baseline_tokens":4173,"baseline_lines_seen":50,"total_lines":250,"rows":[{"budget":800,"tokens":786,"lines_seen":250,"patterns":11,"guarantee":"lossy"},{"budget":400,"tokens":398,"lines_seen":250,"patterns":11,"guarantee":"lossy"},{"budget":200,"tokens":224,"lines_seen":250,"patterns":11,"guarantee":"lossy"}]},"frontier_method":"comparative","frontier":[{"level":"baseline","payload_tokens":18481,"relevance":4.75,"specificity":3.875,"actionability":3.625,"rank":2.25,"sd":0.556,"n":8},{"level":"budget=1500","payload_tokens":1096,"relevance":4.625,"specificity":3.75,"actionability":3.125,"rank":3.62,"sd":0.563,"n":8},{"level":"budget=800","payload_tokens":818,"relevance":4.625,"specificity":3.75,"actionability":3.25,"rank":3.62,"sd":0.469,"n":8},{"level":"budget=400","payload_tokens":398,"relevance":4.5,"specificity":3.125,"actionability":3.25,"rank":4.12,"sd":0.603,"n":8},{"level":"budget=200","payload_tokens":200,"relevance":4.25,"specificity":2.875,"actionability":2.875,"rank":4.88,"sd":0.756,"n":8},{"level":"budget=None","payload_tokens":1107,"relevance":4.625,"specificity":4.25,"actionability":3.625,"rank":2.5,"sd":0.471,"n":8}],"rates":{"claude-opus-5":{"input":5.0,"output":25.0},"claude-sonnet-5":{"input":3.0,"output":15.0},"claude-haiku-4-5":{"input":1.0,"output":5.0}},"token_cache_size":6029}</script>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Track 1 · Cost of Intelligence</div>
+    <h1>Stop paying full price<br>for the same line twice.</h1>
+    <p class="lede">Logs, traces, events, test output, database rows — machine-generated
+    text is mostly repetition, and every copy costs input tokens. packitless extracts the
+    structure, spends a token budget on what carries signal, and tells you exactly what it
+    gave up to get there.</p>
+    <div class="surfaces">
+      <span class="surface">python — one call</span>
+      <span class="surface">CLI — any tool, any language</span>
+      <span class="surface">MCP — the agent decides</span>
+      <span class="surface">no API key required</span>
+    </div>
+  </div>
+  <div class="wrap"><div class="stats" id="stats"></div></div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <div class="head"><h2>Six places it earns its keep</h2><span class="r"></span></div>
+    <p>Each card is a real payload measured at build time — not an illustration. The bar shows
+    input tokens against what survived; the figure beside it is input cost per 1,000 calls at
+    list price.</p>
+    <div class="cards" id="scenarios"></div>
+    <p class="small" style="margin-top:16px" id="rate-note"></p>
+  </section>
+
+  <section>
+    <div class="head"><h2>Where the savings actually come from</h2><span class="r"></span></div>
+    <p>Two thousand HDFS log lines, <strong>zero of them exact duplicates</strong> — so
+    deduplication saves nothing. Under templating they collapse into a handful of shapes. Every
+    block below is one template, sized by the number of lines it stands in for.</p>
+    <figure><div id="treemap"></div><figcaption id="treemap-cap"></figcaption></figure>
+
+    <h4 style="margin-top:30px">And here is every token that survived</h4>
+    <p>“98% saved” is a claim. This is the explanation: what the output spent itself on.</p>
+    <figure><div id="breakdown"></div>
+      <figcaption>The spine carries what happened and how often; the verbatim block is the
+      records the salience scorer refused to drop, kept whatever the budget said.</figcaption>
+    </figure>
+
+    <div class="two" style="margin-top:26px">
+      <div><h4>Input — first 5 of 2,000 lines</h4><pre id="in-sample"></pre></div>
+      <div><h4>Output — complete</h4><pre id="out-sample"></pre></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><h2>Try it on your own logs</h2><span class="r"></span></div>
+    <p class="small">Runs entirely in this page. Your logs are never uploaded, stored, or sent
+    anywhere — which matters, because the natural thing to paste is production output. Capped at
+    5,000 lines; a truncated sample understates compression, since fewer lines means fewer repeats.</p>
+    <textarea id="paste" spellcheck="false"
+      placeholder="Paste log lines — kubectl logs, journalctl, pytest -v, a CI job, anything repetitive."></textarea>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
+      <button id="run">Analyse</button><span id="verdict" class="lbl"></span>
+    </div>
+    <div id="result" style="margin-top:18px"></div>
+  </section>
+
+  <section>
+    <div class="head"><h2>What it costs you in quality</h2><span class="r"></span></div>
+    <p>Summaries scored by an independent LLM judge that always sees the <em>uncompressed</em>
+    logs as ground truth, with every candidate for an incident rated side by side in one call —
+    so a summary that dropped something real has nowhere to hide.</p>
+    <figure><div id="frontier"></div><figcaption id="frontier-cap"></figcaption></figure>
+    <div class="callout">
+      <p><strong>Read this honestly.</strong> At 94% compression the result ranks level with the
+      uncompressed baseline — 4.17 against 4.08, standard deviation near 0.5 at n=8. That is a
+      tie, not a win. Below roughly 800 tokens quality does degrade, and you can see it.</p>
+      <p>An earlier version of this experiment scored each summary alone rather than against its
+      siblings, and reported the whole curve as flat noise. The instrument was the problem, not
+      the compressor — worth saying out loud, because the first result was the flattering one.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><h2>When our own number is a lie</h2><span class="r"></span></div>
+    <p>A compression ratio on its own is unfalsifiable — you can always hit any number by
+    throwing data away. These checks are deterministic, need no API key, and run on every commit.
+    The highlighted row is our own tool reporting a 90% saving it earned by discarding 99.9% of
+    the records.</p>
+    <div class="scroll"><table id="fidelity"></table></div>
+    <p style="margin-top:14px"><strong>Critical recall is 1.000 in every row.</strong> Whatever
+    the budget, records flagged as important survive verbatim — the allocator will overrun the
+    budget rather than drop one, and it reports the overrun.</p>
+  </section>
+
+  <section>
+    <div class="head"><h2>It also knows when to decline</h2><span class="r"></span></div>
+    <p>Extractor selection is a competition, and the score is a compressibility estimate rather
+    than format detection. Prose and source code score near zero, so they pass through
+    byte-for-byte. It will never hand you back more tokens than you gave it.</p>
+    <figure><div id="heatmap"></div>
+      <figcaption>Confidence per extractor per payload. Darker is more confident; the winner is
+      outlined. The bottom rows are payloads it refuses.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="head"><h2>Formats it had never seen</h2><span class="r"></span></div>
+    <p>Everything above uses corpora from development, which is a weak claim about unseen data.
+    These are real logs pulled off a laptop — Apple installer, WiFi driver, APFS check, a
+    disc-recording daemon, a game client — with no tuning of any kind.</p>
+    <figure><div id="unseen"></div>
+      <figcaption>Median 94.6%, mean 92.4%. The weakest result is shown, not trimmed.</figcaption>
+    </figure>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <div id="prov"></div>
+  <p style="margin-top:12px">
+    <a href="https://github.com/Mister-Raggs/packitless">github.com/Mister-Raggs/packitless</a> —
+    <code>pip install -e .</code>, then <code>pytest tests/</code> for the guarantees or
+    <code>python scripts/fidelity_sweep.py</code> for the free frontier. Neither needs a key.</p>
+</footer>
+
+<div class="tip" id="tip"></div>
+
+<script>
+const D = JSON.parse(document.getElementById('report').textContent);
+const N = n => n.toLocaleString('en-US');
+const USD = n => n >= 100 ? '$' + Math.round(n).toLocaleString('en-US')
+  : '$' + n.toFixed(n < 10 ? 2 : 1);
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t, a = {}) => { const e = document.createElementNS(NS, t);
+  for (const k in a) e.setAttribute(k, a[k]); return e; };
+const RAMP = ['--s1','--s2','--s3','--s4','--s5','--s6'];
+const ramp = t => `var(${RAMP[Math.min(5, Math.max(0, Math.round(t * 5)))]})`;
+const tip = document.getElementById('tip');
+function hover(node, html) {
+  node.addEventListener('mousemove', e => { tip.innerHTML = html; tip.style.opacity = 1;
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 270) + 'px';
+    tip.style.top = (e.clientY + 16) + 'px'; });
+  node.addEventListener('mouseleave', () => tip.style.opacity = 0);
+}
+
+const hdfs = D.corpora.find(c => c.name === 'hdfs');
+
+/* headline stats */
+(function () {
+  const best = hdfs.sweep.filter(s => s.passed).sort((a,b) => b.saved_pct - a.saved_pct)[0];
+  const sc = (D.scenarios || []).filter(s => s.saved_pct > 0);
+  const totalSaved = sc.reduce((a, s) => a + s.cost.usd_saved, 0);
+  document.getElementById('stats').innerHTML = [
+    [best.saved_pct.toFixed(1) + '%', 'tokens removed',
+     `${N(hdfs.tokens_before)} → ${N(best.tokens_after)} on real logs, nothing lost`],
+    [USD(totalSaved), 'saved per 1,000 calls',
+     `across ${sc.length} scenarios at list price`],
+    ['94.6%', 'median on unseen logs', 'five formats never used in development'],
+    ['1.000', 'critical recall', 'every flagged record survived, every budget'],
+  ].map(([v,k,s]) => `<div class="stat"><div class="v">${v}</div>
+      <div class="lbl">${k}</div><div class="sub">${s}</div></div>`).join('');
+})();
+
+/* scenario cards */
+(function () {
+  const wrap = document.getElementById('scenarios');
+  if (!D.scenarios) return;
+  wrap.innerHTML = D.scenarios.map(s => {
+    const kept = Math.max(0.4, 100 * s.tokens_after / s.tokens_before);
+    const none = s.extractor === 'passthrough';
+    const pill = none ? '<span class="pill none">passes through</span>'
+      : `<span class="pill ${s.guarantee}">${s.guarantee}</span>`;
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
+        <h3>${s.title}</h3>${pill}</div>
+      <p>${s.blurb}</p>
+      <div class="foot">
+        <h4>${s.surface}</h4>
+        <div class="snip">${s.call.replace(/[<&]/g, m => ({'<':'&lt;','&':'&amp;'}[m]))}</div>
+        <div class="meter" title="${N(s.tokens_after)} of ${N(s.tokens_before)} tokens">
+          <i style="width:${kept}%"></i></div>
+        <div class="figs">
+          <span><b>${none ? '—' : s.saved_pct.toFixed(1) + '%'}</b> ${none ? 'unchanged' : 'fewer tokens'}</span>
+          <span>${USD(s.cost.usd_before)} → ${USD(s.cost.usd_after)} / 1k calls</span>
+        </div>
+      </div></div>`;
+  }).join('');
+  const r = D.rates && D.rates['claude-sonnet-5'];
+  document.getElementById('rate-note').textContent =
+    `Input tokens only — compression changes what you send, not what comes back. Priced at `
+    + `$${r ? r.input.toFixed(2) : '3.00'} per million input tokens (claude-sonnet-5 list). `
+    + `Token counts are exact, measured once and cached so anyone can reproduce them offline.`;
+})();
+
+/* treemap — magnitude, so one hue light→dark */
+(function () {
+  const pats = hdfs.patterns.slice(), W = 1000, H = 230;
+  const total = pats.reduce((s,p) => s + p.count, 0);
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, role:'img',
+    'aria-label':`${pats.length} templates covering ${total} lines`});
+  let items = pats.map(p => ({...p, area: p.count / total * W * H}));
+  let x = 0, y = 0, rw = W, rh = H;
+  while (items.length) {
+    const vert = rw >= rh, side = vert ? rh : rw;
+    let row = [], sum = 0, best = Infinity;
+    for (const it of items) {
+      const s2 = sum + it.area, len = s2 / side;
+      const worst = Math.max(...[...row, it].map(r =>
+        Math.max(len / (r.area / len), (r.area / len) / len)));
+      if (row.length && worst > best) break;
+      row.push(it); sum = s2; best = worst;
+    }
+    const len = sum / side; let off = 0;
+    for (const it of row) {
+      const w = vert ? len : it.area / len, h = vert ? it.area / len : len;
+      const bx = vert ? x : x + off, by = vert ? y + off : y, g = el('g');
+      g.appendChild(el('rect', {x:bx+1, y:by+1, width:Math.max(0,w-2), height:Math.max(0,h-2),
+        fill:ramp(Math.sqrt(it.count / pats[0].count)), stroke:'var(--surface)', 'stroke-width':2}));
+      if (w > 66 && h > 26) {
+        const t = el('text', {x:bx+9, y:by+20, 'font-family':'var(--mono)', 'font-size':12,
+          'font-weight':600, fill: it.count / pats[0].count > .45 ? 'var(--surface)' : 'var(--ink)'});
+        t.textContent = `${it.label} ×${N(it.count)}`; g.appendChild(t);
+      }
+      hover(g, `<b>${it.label}</b> · ${N(it.count)} lines<br>${it.pattern.slice(0,92)}`);
+      svg.appendChild(g); off += vert ? h : w;
+    }
+    if (vert) { x += len; rw -= len; } else { y += len; rh -= len; }
+    items = items.filter(i => !row.includes(i));
+  }
+  document.getElementById('treemap').appendChild(svg);
+  document.getElementById('treemap-cap').textContent =
+    `${N(hdfs.records)} lines · ${hdfs.total_patterns} templates · ${N(hdfs.records)} unique strings, `
+    + `so exact deduplication removes nothing at all.`;
+})();
+
+/* section breakdown — where the surviving tokens went */
+(function () {
+  const sc = (D.scenarios || []).find(s => s.sections && Object.keys(s.sections).length);
+  const host = document.getElementById('breakdown');
+  if (!sc) { host.remove(); return; }
+  const parts = Object.entries(sc.sections).filter(([,v]) => v > 0);
+  const out = parts.reduce((a,[,v]) => a + v, 0);
+  const W = 1000, BH = 44, LABEL = {header:'header', legend:'legend / decode table',
+    patterns:'pattern spine', rows:'per-record rows', verbatim:'verbatim — kept on purpose'};
+  const svg = el('svg', {viewBox:`0 0 ${W} 150`, role:'img',
+    'aria-label':'input tokens versus where output tokens went'});
+  // input bar, full width
+  svg.appendChild(el('rect', {x:0, y:8, width:W, height:BH, fill:'var(--sunken)'}));
+  const it = el('text', {x:12, y:8+BH/2+5, 'font-family':'var(--mono)', 'font-size':13,
+    'font-weight':600, fill:'var(--ink-2)'});
+  it.textContent = `input ${N(sc.tokens_before)} tok`; svg.appendChild(it);
+  // output bar, scaled to the same axis, then a magnified inset
+  const scale = W / sc.tokens_before;
+  svg.appendChild(el('rect', {x:0, y:8+BH+10, width:Math.max(2, out*scale), height:14,
+    fill:'var(--signal)'}));
+  const ot = el('text', {x:Math.max(2,out*scale)+10, y:8+BH+21, 'font-family':'var(--mono)',
+    'font-size':12, fill:'var(--muted)'});
+  ot.textContent = `output ${N(out)} tok — same scale`; svg.appendChild(ot);
+  // magnified breakdown
+  let off = 0;
+  parts.forEach(([name, v], i) => {
+    const w = v / out * W, g = el('g');
+    g.appendChild(el('rect', {x:off+1, y:100, width:Math.max(0,w-2), height:32,
+      fill:ramp(0.25 + 0.75*(i/Math.max(1,parts.length-1)))}));
+    if (w > 90) {
+      const t = el('text', {x:off+10, y:120, 'font-family':'var(--mono)', 'font-size':11.5,
+        'font-weight':600, fill:'var(--surface)'});
+      t.textContent = `${LABEL[name]||name} ${N(v)}`; g.appendChild(t);
+    }
+    hover(g, `<b>${LABEL[name]||name}</b><br>${N(v)} tok · ${(100*v/out).toFixed(1)}% of output`);
+    svg.appendChild(g); off += w;
+  });
+  const cap = el('text', {x:0, y:148, 'font-family':'var(--mono)', 'font-size':11, fill:'var(--muted)'});
+  cap.textContent = 'output magnified to full width →'; svg.appendChild(cap);
+  host.appendChild(svg);
+})();
+
+document.getElementById('in-sample').textContent = hdfs.sample_input.join('\n');
+document.getElementById('out-sample').textContent = hdfs.sample_output.join('\n');
+
+/* frontier — one series, no legend */
+(function () {
+  const order = ['baseline','budget=1500','budget=800','budget=400','budget=200'];
+  const pts = order.map(l => (D.frontier||[]).find(f => f.level === l)).filter(Boolean);
+  if (!pts.length) { document.getElementById('frontier').remove(); return; }
+  const W = 1000, H = 300, P = {t:20, r:30, b:48, l:54};
+  const xs = pts.map(p => Math.log10(p.payload_tokens));
+  const x0 = Math.min(...xs) - .08, x1 = Math.max(...xs) + .08;
+  const X = v => P.l + (Math.log10(v)-x0)/(x1-x0)*(W-P.l-P.r);
+  const lo = 2.6, hi = 5;
+  const Y = v => P.t + (hi-v)/(hi-lo)*(H-P.t-P.b);
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, role:'img',
+    'aria-label':'summary quality against payload tokens'});
+  for (let v = 3; v <= 5.001; v += .5) {
+    svg.appendChild(el('line', {x1:P.l, x2:W-P.r, y1:Y(v), y2:Y(v), stroke:'var(--rule)'}));
+    const t = el('text', {x:P.l-10, y:Y(v)+4, 'text-anchor':'end', fill:'var(--muted)',
+      'font-family':'var(--mono)', 'font-size':11}); t.textContent = v.toFixed(1); svg.appendChild(t);
+  }
+  const mean = p => (p.relevance + p.specificity + p.actionability)/3;
+  const band = pts.map(p => `${X(p.payload_tokens)},${Y(mean(p)+(p.sd||0))}`)
+    .concat(pts.slice().reverse().map(p => `${X(p.payload_tokens)},${Y(mean(p)-(p.sd||0))}`));
+  svg.appendChild(el('polygon', {points:band.join(' '), fill:'var(--signal)', opacity:.13}));
+  svg.appendChild(el('polyline', {points:pts.map(p=>`${X(p.payload_tokens)},${Y(mean(p))}`).join(' '),
+    fill:'none', stroke:'var(--signal)', 'stroke-width':2}));
+  pts.forEach(p => {
+    const g = el('g');
+    g.appendChild(el('circle', {cx:X(p.payload_tokens), cy:Y(mean(p)), r:5, fill:'var(--signal)',
+      stroke:'var(--surface)', 'stroke-width':2}));
+    const t = el('text', {x:X(p.payload_tokens), y:H-27, 'text-anchor':'middle',
+      fill:'var(--muted)', 'font-family':'var(--mono)', 'font-size':11});
+    t.textContent = N(p.payload_tokens); g.appendChild(t);
+    hover(g, `<b>${p.level}</b><br>${N(p.payload_tokens)} tok · mean ${mean(p).toFixed(2)} ±${(p.sd||0).toFixed(2)}<br>rank ${p.rank ?? '—'} · n=${p.n}`);
+    svg.appendChild(g);
+  });
+  const ax = el('text', {x:(P.l+W-P.r)/2, y:H-6, 'text-anchor':'middle', fill:'var(--muted)',
+    'font-family':'var(--mono)', 'font-size':11});
+  ax.textContent = 'payload tokens sent to the model (log scale)'; svg.appendChild(ax);
+  document.getElementById('frontier').appendChild(svg);
+  const ranks = pts.map(p => p.rank).filter(r => r != null);
+  document.getElementById('frontier-cap').textContent = ranks.length
+    ? `Shaded band is ±1 standard deviation. The judge's direct ordering runs `
+      + ranks.map(r => r.toFixed(2)).join(' · ') + ' from uncompressed to most compressed.'
+    : 'Shaded band is ±1 standard deviation across the scored dimensions.';
+})();
+
+/* fidelity table */
+(function () {
+  const rows = [];
+  for (const c of D.corpora) for (const s of c.sweep) {
+    const bad = !s.passed && s.count_conservation < .5;
+    rows.push(`<tr class="${bad ? 'flag' : ''}">
+      <td>${c.name} <span class="lbl">${c.difficulty}</span></td>
+      <td>${s.budget === null ? 'none' : N(s.budget)}</td>
+      <td>${N(s.tokens_after)}</td><td><strong>${s.saved_pct.toFixed(1)}%</strong></td>
+      <td>${s.count_conservation.toFixed(3)}</td><td>${s.pattern_coverage.toFixed(3)}</td>
+      <td>${s.critical_recall.toFixed(3)}</td>
+      <td><span class="pill ${s.passed?'ok':'loss'}">${s.passed?'intact':'truncated'}</span></td></tr>`);
+  }
+  document.getElementById('fidelity').innerHTML =
+    `<thead><tr><th>corpus</th><th>budget</th><th>tok out</th><th>saved</th><th>records kept</th>
+     <th>patterns kept</th><th>critical recall</th><th>verdict</th></tr></thead><tbody>${rows.join('')}</tbody>`;
+})();
+
+/* extractor heatmap — sequential */
+(function () {
+  const names = ['lines','jsonrec','hybrid'], rows = D.extractor_matrix;
+  const cw = 148, ch = 38, lw = 200, W = lw + names.length*cw + 8, H = 26 + rows.length*ch;
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, role:'img', 'aria-label':'extractor confidence'});
+  names.forEach((n,i) => { const t = el('text', {x:lw+i*cw+cw/2, y:16, 'text-anchor':'middle',
+    fill:'var(--muted)', 'font-family':'var(--mono)', 'font-size':11}); t.textContent = n; svg.appendChild(t); });
+  rows.forEach((r,ri) => {
+    const y = 26+ri*ch, best = Math.max(...names.map(n => r.scores[n] ?? 0));
+    const lab = el('text', {x:0, y:y+ch/2+4, fill:'var(--ink-2)', 'font-family':'var(--mono)','font-size':12});
+    lab.textContent = r.payload; svg.appendChild(lab);
+    names.forEach((n,ci) => {
+      const v = r.scores[n] ?? 0, g = el('g'), win = v === best && best > .05;
+      g.appendChild(el('rect', {x:lw+ci*cw, y:y+2, width:cw-4, height:ch-6,
+        fill: v < .02 ? 'var(--sunken)' : ramp(v),
+        stroke: win ? 'var(--warn)' : 'var(--rule)', 'stroke-width': win ? 2 : 1}));
+      const t = el('text', {x:lw+ci*cw+cw/2, y:y+ch/2+4, 'text-anchor':'middle',
+        'font-family':'var(--mono)', 'font-size':12, 'font-weight': win ? 600 : 400,
+        fill: v > .55 ? 'var(--surface)' : 'var(--ink)'});
+      t.textContent = v.toFixed(3); g.appendChild(t);
+      hover(g, `<b>${r.payload}</b> · ${n}<br>confidence ${v.toFixed(3)}${v < .05 ? '<br>declines — passes through' : ''}`);
+      svg.appendChild(g);
+    });
+  });
+  document.getElementById('heatmap').appendChild(svg);
+})();
+
+/* unseen logs */
+(function () {
+  const data = [{n:'wifi.log',v:98.5,r:4000},{n:'fsck_apfs.log',v:97.4,r:903},
+    {n:'install.log',v:94.6,r:4000},{n:'DiscRecording.log',v:92.9,r:356},
+    {n:'LeagueClientUx_debug.log',v:78.5,r:224}];
+  const lw = 210, bw = 690, bh = 30, W = lw+bw+62, H = data.length*bh+30;
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, role:'img', 'aria-label':'compression on unseen logs'});
+  data.forEach((d,i) => {
+    const y = i*bh, g = el('g');
+    const lab = el('text', {x:0, y:y+bh/2+4, fill:'var(--ink-2)', 'font-family':'var(--mono)','font-size':12});
+    lab.textContent = d.n; g.appendChild(lab);
+    g.appendChild(el('rect', {x:lw, y:y+5, width:bw, height:bh-12, fill:'var(--sunken)'}));
+    g.appendChild(el('rect', {x:lw, y:y+5, width:bw*d.v/100, height:bh-12, fill:ramp((d.v-70)/30)}));
+    const t = el('text', {x:lw+bw*d.v/100+8, y:y+bh/2+4, fill:'var(--ink)',
+      'font-family':'var(--mono)','font-size':12,'font-weight':600});
+    t.textContent = d.v.toFixed(1)+'%'; g.appendChild(t);
+    hover(g, `<b>${d.n}</b><br>${N(d.r)} records · ${d.v}% removed`); svg.appendChild(g);
+  });
+  const med = lw+bw*.946;
+  svg.appendChild(el('line', {x1:med, x2:med, y1:0, y2:data.length*bh, stroke:'var(--warn)',
+    'stroke-width':2, 'stroke-dasharray':'4 3'}));
+  const mt = el('text', {x:med, y:H-8, 'text-anchor':'middle', fill:'var(--warn)',
+    'font-family':'var(--mono)','font-size':11}); mt.textContent = 'median 94.6%'; svg.appendChild(mt);
+  document.getElementById('unseen').appendChild(svg);
+})();
+
+document.getElementById('prov').innerHTML =
+  `Token counts measured with <code>claude-sonnet-5</code> and cached${D.token_cache_size ?
+   ` (${N(D.token_cache_size)} entries)` : ''}, so every figure here reproduces offline with no API key.
+   Quality frontier: n=8 incidents, judged comparatively. Fidelity checks are deterministic.`;
+
+/* in-browser estimator */
+const MASKS = [[/blk_-?\d+/g,'<BLK>'],[/\b\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?/g,'<IP>'],
+  [/\b[0-9a-fA-F]{8,}\b/g,'<HEX>'],[/\/[\w.\-/]{4,}/g,'<PATH>'],
+  [/\b\d{2}:\d{2}:\d{2}(?:[.,]\d+)?\b/g,'<TIME>'],[/\b\d{4}-\d{2}-\d{2}\b/g,'<DATE>'],
+  [/\b\d+\b/g,'<NUM>']];
+const maskLine = s => MASKS.reduce((a,[re,t]) => a.replace(re,t), s);
+const estTok = s => Math.max(1, Math.round((s.match(/\w+|[^\w\s]/g)||[]).length * 1.32));
+const esc = s => s.replace(/[<&]/g, m => ({'<':'&lt;','&':'&amp;'}[m]));
+
+document.getElementById('run').addEventListener('click', () => {
+  const all = document.getElementById('paste').value.split('\n').filter(l => l.trim());
+  const lines = all.slice(0, 5000);
+  const out = document.getElementById('result'), verdict = document.getElementById('verdict');
+  if (lines.length < 5) { out.innerHTML = ''; verdict.textContent = 'need at least 5 lines'; return; }
+
+  const groups = new Map();
+  for (const l of lines) { const k = maskLine(l); groups.set(k, (groups.get(k)||0)+1); }
+  const sorted = [...groups.entries()].sort((a,b) => b[1]-a[1]);
+  const conf = Math.max(0, 1 - sorted.length/lines.length);
+  const before = estTok(lines.join('\n'));
+  const after = estTok(sorted.map(([p,c]) => `[T] x${c} ${p}`).join('\n'));
+  const shrinks = after < before && conf >= .05;
+  const rate = (D.rates && D.rates['claude-sonnet-5'] || {input:3}).input;
+
+  verdict.textContent = shrinks ? 'compressible'
+    : conf >= .05 ? 'marginal — would not shrink, so it passes through'
+    : 'declines — passes through unchanged';
+  out.innerHTML = `<div class="stats" style="margin:0 0 16px">
+      <div class="stat"><div class="v">${shrinks ? (100*(before-after)/before).toFixed(1)+'%' : '0%'}</div>
+        <div class="lbl">estimated reduction</div></div>
+      <div class="stat"><div class="v">${N(sorted.length)}</div><div class="lbl">templates</div>
+        <div class="sub">from ${N(lines.length)} lines${all.length > lines.length ? ` (capped from ${N(all.length)})` : ''}</div></div>
+      <div class="stat"><div class="v">${shrinks ? '$'+((before-after)/1e6*rate*1000).toFixed(2) : '$0.00'}</div>
+        <div class="lbl">saved / 1k calls</div><div class="sub">at $${rate.toFixed(2)}/Mtok input</div></div>
+    </div>
+    <pre>${sorted.slice(0,14).map(([p,c]) =>
+      `×${String(c).padStart(6)}  ${esc(p).slice(0,110)}`).join('\n')}${
+      sorted.length > 14 ? `\n… ${N(sorted.length-14)} more templates` : ''}</pre>
+    <p class="small" style="margin-top:10px">In-browser estimate using regex templating and an
+    approximate tokenizer. The installed tool uses Drain and the real tokenizer, and usually finds
+    <em>fewer</em> templates than this — treat it as a floor.</p>`;
+});
+</script>

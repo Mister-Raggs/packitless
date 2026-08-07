@@ -17,9 +17,14 @@ ROOT = Path(__file__).resolve().parent.parent
 REPORT = ROOT / "results" / "report.json"
 # Both artefacts are built from the same measurements, so the deck can never
 # quote a figure the results page contradicts.
+# docs/ is served by GitHub Pages straight off the default branch: a public
+# URL that needs no login, no hosting account, and no deploy step beyond the
+# push that was happening anyway.
 TARGETS = [
     (ROOT / "page" / "template.html", ROOT / "results" / "index.html"),
     (ROOT / "page" / "slides.html", ROOT / "results" / "slides.html"),
+    (ROOT / "page" / "template.html", ROOT / "docs" / "index.html"),
+    (ROOT / "page" / "slides.html", ROOT / "docs" / "slides.html"),
 ]
 
 

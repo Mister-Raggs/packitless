@@ -10,8 +10,9 @@ __pycache__/
 corpora/*.log
 corpora/*.jsonl
 
-# Built page (regenerate: export_report.py && build_page.py)
+# Built pages under results/ are scratch; the docs/ copies are published.
 results/index.html
+results/slides.html
 *.png
 
 # Measurements ARE the evidence — results/*.json is committed deliberately.
