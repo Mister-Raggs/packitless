@@ -1,0 +1,15 @@
+# Secrets — never commit
+.env
+
+# Environments
+.venv/
+__pycache__/
+*.egg-info/
+
+# Generated corpora (rebuild with scripts/build_corpora.py)
+corpora/*.log
+corpora/*.jsonl
+
+# Results
+results/
+*.png
