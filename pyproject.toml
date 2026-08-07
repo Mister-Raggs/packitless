@@ -10,9 +10,12 @@ dependencies = [
 
 [project.scripts]
 packitless = "packitless.cli:main"
+packitless-mcp = "packitless.integrations.mcp_server:main"
 
 [project.optional-dependencies]
+mcp = ["mcp>=1.0"]
 plot = ["matplotlib>=3.8"]
+dev = ["pytest>=8.0"]
 
 [build-system]
 requires = ["hatchling"]
