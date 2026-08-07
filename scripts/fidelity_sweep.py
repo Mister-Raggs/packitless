@@ -30,7 +30,7 @@ BUDGETS: list[int | None] = [None, 4000, 1500, 800, 400, 200]
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exact", action="store_true",
-                        help="use the real tokenizer (still free: count_tokens is unbilled)")
+                        help="use the real tokenizer (needs API credit; falls back to heuristic)")
     args = parser.parse_args()
 
     if args.exact:

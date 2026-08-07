@@ -87,18 +87,24 @@ class AnthropicCounter:
         self.model = self._resolve_model(model)
 
     def _resolve_model(self, preferred: str) -> str:
-        """Pick a counting model this key can actually reach.
+        """Pick a counting model this key can actually count with.
 
-        A pinned model that the caller's key cannot access raises 404 on the
-        first count rather than at construction, which is a confusing place to
-        discover it — so probe once, here.
+        Probes with a real count_tokens call rather than models.retrieve.
+        Metadata endpoints stay reachable in situations where counting does
+        not — an exhausted credit balance denies API access wholesale, so a
+        client that looks healthy at construction fails on first use. Probing
+        the capability we actually need means get_counter() can fall back to
+        the heuristic instead of raising mid-run.
         """
         import anthropic
 
         candidates = [preferred, *(m for m in _COUNT_MODEL_FALLBACKS if m != preferred)]
+        last: Exception | None = None
         for candidate in candidates:
             try:
-                self._client.models.retrieve(candidate)
+                self._client.messages.count_tokens(
+                    model=candidate, messages=[{"role": "user", "content": "probe"}]
+                )
                 if candidate != preferred:
                     logger.warning(
                         "counting model %r unavailable; using %r instead",
@@ -106,10 +112,15 @@ class AnthropicCounter:
                         candidate,
                     )
                 return candidate
-            except anthropic.NotFoundError:
+            except anthropic.NotFoundError as exc:
+                last = exc
                 continue
+            except anthropic.APIStatusError as exc:
+                # Auth, billing, rate limit — not model-specific, so trying
+                # other models will fail identically.
+                raise RuntimeError(f"token counting unavailable: {exc}") from exc
         raise RuntimeError(
-            f"no usable counting model (tried {', '.join(candidates)})"
+            f"no usable counting model (tried {', '.join(candidates)}): {last}"
         )
 
     def count(self, text: str) -> int:
