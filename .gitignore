@@ -13,3 +13,6 @@ corpora/*.jsonl
 # Results
 results/
 *.png
+
+# Built page (regenerate: export_report.py && build_page.py)
+results/index.html

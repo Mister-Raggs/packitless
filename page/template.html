@@ -1,0 +1,476 @@
+<title>packitless — measured results</title>
+<style>
+:root {
+  --ground:   #F5F7F9;
+  --surface:  #FFFFFF;
+  --sunken:   #ECEFF3;
+  --rule:     #DBE0E7;
+  --ink:      #0E1319;
+  --ink-2:    #3D4753;
+  --muted:    #6B7683;
+  --signal:   #1A6FC4;
+  --signal-2: #1257A0;
+  --warn:     #B8791C;
+  --crit:     #A33A34;
+  --good:     #2E6B4F;
+  --s1: #E4EDF7; --s2: #BCD4EC; --s3: #8FB6DE; --s4: #5C93CE; --s5: #1A6FC4; --s6: #10426F;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0E1217; --surface: #161B22; --sunken: #1C222B; --rule: #2A323D;
+    --ink: #E3E9F1; --ink-2: #B4BFCC; --muted: #7F8B99;
+    --signal: #5C9EE0; --signal-2: #86BAEC; --warn: #D9A03F; --crit: #D9635A; --good: #56A37C;
+    --s1: #1A2430; --s2: #22354A; --s3: #2E4C6B; --s4: #3D6B96; --s5: #5C9EE0; --s6: #9CC6EE;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0E1217; --surface: #161B22; --sunken: #1C222B; --rule: #2A323D;
+  --ink: #E3E9F1; --ink-2: #B4BFCC; --muted: #7F8B99;
+  --signal: #5C9EE0; --signal-2: #86BAEC; --warn: #D9A03F; --crit: #D9635A; --good: #56A37C;
+  --s1: #1A2430; --s2: #22354A; --s3: #2E4C6B; --s4: #3D6B96; --s5: #5C9EE0; --s6: #9CC6EE;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font-family: var(--sans); font-size: 15px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
+h1, h2, h3, .lbl, .num, code, pre, th, td { font-family: var(--mono); }
+h1 { font-size: 30px; line-height: 1.15; margin: 0; letter-spacing: -0.02em; font-weight: 600; }
+h2 { font-size: 15px; margin: 0 0 6px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+h3 { font-size: 13px; margin: 0 0 10px; color: var(--ink-2); font-weight: 600; }
+p { margin: 0 0 14px; max-width: 68ch; color: var(--ink-2); }
+a { color: var(--signal); }
+.num { font-variant-numeric: tabular-nums; }
+.lbl { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+header { background: var(--surface); border-bottom: 1px solid var(--rule); padding: 40px 0 0; }
+.thesis { display: grid; grid-template-columns: 1fr; gap: 18px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--signal); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px; background: var(--rule); border-top: 1px solid var(--rule); margin-top: 32px; }
+.stat { background: var(--surface); padding: 18px 20px 20px; }
+.stat .v { font-family: var(--mono); font-size: 30px; font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em; line-height: 1.1; }
+.stat .k { margin-top: 4px; }
+.stat .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+section { padding: 44px 0; border-bottom: 1px solid var(--rule); }
+.sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; }
+.sec-head .rule { flex: 1; height: 1px; background: var(--rule); }
+
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--rule);
+  font-variant-numeric: tabular-nums; }
+th { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600; border-bottom-width: 1px; }
+th:first-child, td:first-child { text-align: left; }
+.scroll { overflow-x: auto; }
+
+.pill { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+  letter-spacing: 0.06em; padding: 2px 7px; border-radius: 2px; border: 1px solid; }
+.pill.ok   { color: var(--good); border-color: var(--good); }
+.pill.loss { color: var(--crit); border-color: var(--crit); background: color-mix(in srgb, var(--crit) 8%, transparent); }
+.pill.lossless { color: var(--signal); border-color: var(--signal); }
+
+pre { background: var(--sunken); border: 1px solid var(--rule); padding: 12px 14px;
+  overflow-x: auto; font-size: 11.5px; line-height: 1.55; margin: 0; color: var(--ink-2); }
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 820px) { .panels { grid-template-columns: 1fr; } }
+
+figure { margin: 0 0 8px; }
+figcaption { font-size: 12px; color: var(--muted); margin-top: 8px; max-width: 68ch; }
+svg { display: block; max-width: 100%; }
+
+.callout { border-left: 2px solid var(--warn); background: color-mix(in srgb, var(--warn) 7%, transparent);
+  padding: 12px 16px; margin: 18px 0; }
+.callout p:last-child { margin-bottom: 0; }
+
+textarea { width: 100%; min-height: 150px; font-family: var(--mono); font-size: 11.5px;
+  padding: 12px; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--rule); border-radius: 2px; resize: vertical; }
+button { font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; font-weight: 600;
+  padding: 9px 18px; background: var(--signal); color: #fff; border: 0; border-radius: 2px;
+  cursor: pointer; }
+button:hover { background: var(--signal-2); }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.privacy { font-size: 12px; color: var(--muted); }
+footer { padding: 32px 0 56px; font-size: 13px; color: var(--muted); }
+.tip { position: fixed; pointer-events: none; z-index: 9; background: var(--surface);
+  border: 1px solid var(--rule); padding: 6px 9px; font-family: var(--mono); font-size: 11px;
+  border-radius: 2px; opacity: 0; transition: opacity .1s; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<script type="application/json" id="report">__DATA__</script>
+
+<header>
+  <div class="wrap thesis">
+    <div class="eyebrow">Track 1 · Cost of Intelligence</div>
+    <h1>packitless</h1>
+    <p style="font-size:16px;color:var(--ink)">Machine-generated text is mostly repetition, and you pay full
+    token price for every copy of it. This page is every number the tool produced, including the ones
+    that make it look worse.</p>
+  </div>
+  <div class="wrap"><div class="stats" id="stats"></div></div>
+</header>
+
+<main class="wrap">
+
+  <section>
+    <div class="sec-head"><h2>Why it works</h2><span class="rule"></span></div>
+    <p>Two thousand HDFS log lines, <strong>zero of them exact duplicates</strong> — so
+    deduplication saves nothing. Under templating they collapse to a handful of shapes. Each block
+    below is one template, sized by how many lines it covers.</p>
+    <figure><div id="treemap"></div>
+      <figcaption id="treemap-cap"></figcaption>
+    </figure>
+    <div class="panels" style="margin-top:22px">
+      <div><h3>Input — first 5 of 2,000 lines</h3><pre id="in-sample"></pre></div>
+      <div><h3>Output — complete, at a 400-token budget</h3><pre id="out-sample"></pre></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Does compression hurt the answer?</h2><span class="rule"></span></div>
+    <p>Log summaries scored 1–5 by an independent LLM judge that always sees the
+    <em>uncompressed</em> logs as ground truth, so a summary that lost something real has nowhere
+    to hide. Eight incidents, 48 runs.</p>
+    <figure><div id="frontier"></div>
+      <figcaption>Relevance held at 5.00 at every budget — summaries never became wrong. The shaded
+      band is the spread across the three scored dimensions.</figcaption>
+    </figure>
+    <div class="callout">
+      <p><strong>Read this honestly:</strong> quality is not monotonic — a 200-token payload scored
+      <em>higher</em> than an 800-token one. At n=8 on an integer rubric those gaps are noise. The
+      defensible claim is “no detectable quality loss down to 200 tokens”, not “we found the optimum”.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Fidelity, measured for free</h2><span class="rule"></span></div>
+    <p>An LLM judge costs money and returns a noisy integer. Whether compression <em>discarded
+    something</em> is deterministic, and runs on every commit at zero cost. Note the row where a
+    90%-saved headline is produced by throwing away 99.9% of the records — the token count alone
+    calls that a triumph.</p>
+    <div class="scroll"><table id="fidelity"></table></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Where it applies — and where it declines</h2><span class="rule"></span></div>
+    <p>Extractor selection is a competition: each reports how well it expects to do, highest wins.
+    Because that score is a compressibility estimate rather than format detection, prose and source
+    code score near zero and pass through <strong>untouched</strong> instead of being mangled.</p>
+    <figure><div id="heatmap"></div>
+      <figcaption>Confidence per extractor per payload. Darker is more confident; the winner is outlined.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Logs it had never seen</h2><span class="rule"></span></div>
+    <p>Every number above comes from corpora used while building the tool, which is a weak claim
+    about unseen data. These are real logs pulled off a laptop — Apple installer, WiFi driver, APFS
+    check, a disc-recording daemon, a game client — with no tuning of any kind.</p>
+    <figure><div id="unseen"></div>
+      <figcaption>Median 94.6%, mean 92.4%. The weakest result is shown, not trimmed.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Dropped into a real service</h2><span class="rule"></span></div>
+    <p>Flare is a production log-triage service. It truncates each incident to
+    <code>log_lines[:50]</code> to control cost — a budget expressed in rows, which is the wrong
+    unit, since fifty verbose lines and fifty terse ones cost wildly different amounts.</p>
+    <div class="scroll"><table id="flare"></table></div>
+    <p style="margin-top:14px">Not just cheaper — <strong>better informed</strong>: the adapter reads
+    every line and still spends a fraction of the tokens.</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Try it on your own logs</h2><span class="rule"></span></div>
+    <p class="privacy">Runs entirely in this page. Your logs are never uploaded, stored, or sent
+    anywhere. Capped at 5,000 lines; a truncated sample understates compression, because fewer
+    lines means fewer repeats.</p>
+    <textarea id="paste" spellcheck="false"
+      placeholder="Paste log lines here — kubectl logs, journalctl, pytest -v, a CI job, anything repetitive."></textarea>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:12px">
+      <button id="run">Analyse</button><span id="verdict" class="lbl"></span>
+    </div>
+    <div id="result" style="margin-top:18px"></div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <div id="prov"></div>
+  <p style="margin-top:10px"><a href="https://github.com/Mister-Raggs/packitless">github.com/Mister-Raggs/packitless</a>
+  — <code>pip install -e .</code>, then <code>python scripts/fidelity_sweep.py</code> to reproduce the free tier.</p>
+</footer>
+
+<div class="tip" id="tip"></div>
+
+<script>
+const D = JSON.parse(document.getElementById('report').textContent);
+const N = n => n.toLocaleString('en-US');
+const tip = document.getElementById('tip');
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t, a = {}) => { const e = document.createElementNS(NS, t);
+  for (const k in a) e.setAttribute(k, a[k]); return e; };
+const RAMP = ['--s1','--s2','--s3','--s4','--s5','--s6'];
+const ramp = t => `var(${RAMP[Math.min(RAMP.length - 1, Math.max(0, Math.round(t * (RAMP.length - 1))))]})`;
+
+function hover(node, html) {
+  node.addEventListener('mousemove', e => {
+    tip.innerHTML = html; tip.style.opacity = 1;
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 260) + 'px';
+    tip.style.top = (e.clientY + 16) + 'px';
+  });
+  node.addEventListener('mouseleave', () => { tip.style.opacity = 0; });
+}
+
+/* ---- headline stats ---------------------------------------------------- */
+const hdfs = D.corpora.find(c => c.name === 'hdfs');
+const jobs = D.corpora.find(c => c.name === 'jobs');
+const best = hdfs.sweep.filter(s => s.passed).sort((a, b) => b.saved_pct - a.saved_pct)[0];
+document.getElementById('stats').innerHTML = [
+  [best.saved_pct.toFixed(1) + '%', 'tokens removed', `${N(hdfs.tokens_before)} → ${N(best.tokens_after)} on HDFS logs, no fidelity loss`],
+  ['94.6%', 'median, unseen logs', 'five formats never used in development'],
+  ['1.000', 'critical recall', 'every flagged record survived, every budget, every corpus'],
+  ['24,000', 'fields round-tripped', 'lossless tier rebuilt exactly from its own output'],
+].map(([v, k, s]) => `<div class="stat"><div class="v">${v}</div><div class="k lbl">${k}</div><div class="sub">${s}</div></div>`).join('');
+
+/* ---- treemap: magnitude, so one hue light→dark ------------------------- */
+(function () {
+  const pats = hdfs.patterns.slice(), W = 1000, H = 260, total = pats.reduce((s, p) => s + p.count, 0);
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img',
+    'aria-label': `${pats.length} templates covering ${total} log lines` });
+  // squarified-ish: fill rows greedily, keeping blocks near square
+  let items = pats.map(p => ({ ...p, area: p.count / total * W * H }));
+  let x = 0, y = 0, rw = W, rh = H;
+  while (items.length) {
+    const vertical = rw >= rh;
+    const side = vertical ? rh : rw;
+    let row = [], sum = 0, best = Infinity;
+    for (const it of items) {
+      const s2 = sum + it.area, len = s2 / side;
+      const worst = Math.max(...[...row, it].map(r => Math.max(len / (r.area / len), (r.area / len) / len)));
+      if (row.length && worst > best) break;
+      row.push(it); sum = s2; best = worst;
+    }
+    const len = sum / side;
+    let off = 0;
+    for (const it of row) {
+      const t = it.count / pats[0].count;
+      const w = vertical ? len : it.area / len, h = vertical ? it.area / len : len;
+      const bx = vertical ? x : x + off, by = vertical ? y + off : y;
+      const g = el('g');
+      g.appendChild(el('rect', { x: bx + 1, y: by + 1, width: Math.max(0, w - 2), height: Math.max(0, h - 2),
+        fill: ramp(Math.sqrt(t)), stroke: 'var(--surface)', 'stroke-width': 2 }));
+      if (w > 62 && h > 26) {
+        const lab = el('text', { x: bx + 9, y: by + 20, fill: t > 0.45 ? 'var(--surface)' : 'var(--ink)',
+          'font-family': 'var(--mono)', 'font-size': 12, 'font-weight': 600 });
+        lab.textContent = `${it.label} ×${N(it.count)}`; g.appendChild(lab);
+      }
+      hover(g, `<b>${it.label}</b> · ${N(it.count)} lines<br>${it.pattern.slice(0, 90)}`);
+      svg.appendChild(g);
+      off += vertical ? h : w;
+    }
+    if (vertical) { x += len; rw -= len; } else { y += len; rh -= len; }
+    items = items.filter(i => !row.includes(i));
+  }
+  document.getElementById('treemap').appendChild(svg);
+  document.getElementById('treemap-cap').textContent =
+    `${N(hdfs.records)} lines · ${hdfs.total_patterns} templates · ${N(hdfs.records)} unique strings, so exact deduplication removes nothing.`;
+})();
+
+document.getElementById('in-sample').textContent = hdfs.sample_input.join('\n');
+(function () {
+  const s = hdfs.sweep.find(s => s.budget === 400);
+  document.getElementById('out-sample').textContent = hdfs.sample_output.join('\n');
+})();
+
+/* ---- frontier: one series, no legend ----------------------------------- */
+(function () {
+  const order = ['baseline', 'budget=1500', 'budget=800', 'budget=400', 'budget=200'];
+  const pts = order.map(l => D.frontier.find(f => f.level === l)).filter(Boolean);
+  if (!pts.length) return;
+  const W = 1000, H = 300, P = { t: 20, r: 28, b: 46, l: 54 };
+  const xs = pts.map(p => Math.log10(p.payload_tokens));
+  const x0 = Math.min(...xs) - 0.08, x1 = Math.max(...xs) + 0.08;
+  const X = v => P.l + (Math.log10(v) - x0) / (x1 - x0) * (W - P.l - P.r);
+  const Y = v => P.t + (5 - v) / 1.6 * (H - P.t - P.b);
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'quality versus payload tokens' });
+  for (let v = 3.4; v <= 5.001; v += 0.4) {
+    svg.appendChild(el('line', { x1: P.l, x2: W - P.r, y1: Y(v), y2: Y(v), stroke: 'var(--rule)' }));
+    const t = el('text', { x: P.l - 10, y: Y(v) + 4, 'text-anchor': 'end', fill: 'var(--muted)',
+      'font-family': 'var(--mono)', 'font-size': 11 }); t.textContent = v.toFixed(1); svg.appendChild(t);
+  }
+  const band = pts.map(p => `${X(p.payload_tokens)},${Y(Math.max(p.relevance, p.specificity, p.actionability))}`)
+    .concat(pts.slice().reverse().map(p => `${X(p.payload_tokens)},${Y(Math.min(p.relevance, p.specificity, p.actionability))}`));
+  svg.appendChild(el('polygon', { points: band.join(' '), fill: 'var(--signal)', opacity: 0.13 }));
+  const mean = p => (p.relevance + p.specificity + p.actionability) / 3;
+  svg.appendChild(el('polyline', { points: pts.map(p => `${X(p.payload_tokens)},${Y(mean(p))}`).join(' '),
+    fill: 'none', stroke: 'var(--signal)', 'stroke-width': 2 }));
+  pts.forEach(p => {
+    const g = el('g');
+    g.appendChild(el('circle', { cx: X(p.payload_tokens), cy: Y(mean(p)), r: 5,
+      fill: 'var(--signal)', stroke: 'var(--surface)', 'stroke-width': 2 }));
+    const t = el('text', { x: X(p.payload_tokens), y: H - 26, 'text-anchor': 'middle',
+      fill: 'var(--muted)', 'font-family': 'var(--mono)', 'font-size': 11 });
+    t.textContent = N(p.payload_tokens); g.appendChild(t);
+    hover(g, `<b>${p.level}</b><br>${N(p.payload_tokens)} tok · mean ${mean(p).toFixed(2)}<br>relevance ${p.relevance.toFixed(2)} · n=${p.n}`);
+    svg.appendChild(g);
+  });
+  const ax = el('text', { x: (P.l + W - P.r) / 2, y: H - 6, 'text-anchor': 'middle', fill: 'var(--muted)',
+    'font-family': 'var(--mono)', 'font-size': 11 });
+  ax.textContent = 'payload tokens (log scale)'; svg.appendChild(ax);
+  document.getElementById('frontier').appendChild(svg);
+})();
+
+/* ---- fidelity table ---------------------------------------------------- */
+(function () {
+  const rows = [];
+  for (const c of D.corpora) for (const s of c.sweep) {
+    rows.push(`<tr>
+      <td>${c.name} <span class="lbl">${c.difficulty}</span></td>
+      <td>${s.budget === null ? 'none' : N(s.budget)}</td>
+      <td>${N(s.tokens_after)}</td>
+      <td><strong>${s.saved_pct.toFixed(1)}%</strong></td>
+      <td>${s.count_conservation.toFixed(3)}</td>
+      <td>${s.pattern_coverage.toFixed(3)}</td>
+      <td>${s.critical_recall.toFixed(3)}</td>
+      <td><span class="pill ${s.passed ? 'ok' : 'loss'}">${s.passed ? 'intact' : 'truncated'}</span></td></tr>`);
+  }
+  document.getElementById('fidelity').innerHTML =
+    `<thead><tr><th>corpus</th><th>budget</th><th>tok out</th><th>saved</th>
+     <th>records kept</th><th>patterns kept</th><th>critical recall</th><th>verdict</th></tr></thead>
+     <tbody>${rows.join('')}</tbody>`;
+})();
+
+/* ---- extractor heatmap: sequential, magnitude -------------------------- */
+(function () {
+  const names = ['lines', 'jsonrec', 'hybrid'], rows = D.extractor_matrix;
+  const cw = 150, ch = 40, lw = 190, W = lw + names.length * cw + 10, H = 26 + rows.length * ch;
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'extractor confidence per payload' });
+  names.forEach((n, i) => {
+    const t = el('text', { x: lw + i * cw + cw / 2, y: 16, 'text-anchor': 'middle',
+      fill: 'var(--muted)', 'font-family': 'var(--mono)', 'font-size': 11 });
+    t.textContent = n; svg.appendChild(t);
+  });
+  rows.forEach((r, ri) => {
+    const y = 26 + ri * ch;
+    const best = Math.max(...names.map(n => r.scores[n] ?? 0));
+    const lab = el('text', { x: 0, y: y + ch / 2 + 4, fill: 'var(--ink-2)',
+      'font-family': 'var(--mono)', 'font-size': 12 });
+    lab.textContent = r.payload; svg.appendChild(lab);
+    names.forEach((n, ci) => {
+      const v = r.scores[n] ?? 0, g = el('g');
+      g.appendChild(el('rect', { x: lw + ci * cw, y: y + 2, width: cw - 4, height: ch - 6,
+        fill: v < 0.02 ? 'var(--sunken)' : ramp(v),
+        stroke: v === best && best > 0.05 ? 'var(--warn)' : 'var(--rule)',
+        'stroke-width': v === best && best > 0.05 ? 2 : 1 }));
+      const t = el('text', { x: lw + ci * cw + cw / 2, y: y + ch / 2 + 4, 'text-anchor': 'middle',
+        'font-family': 'var(--mono)', 'font-size': 12, 'font-weight': v === best ? 600 : 400,
+        fill: v > 0.55 ? 'var(--surface)' : 'var(--ink)' });
+      t.textContent = v.toFixed(3); g.appendChild(t);
+      hover(g, `<b>${r.payload}</b> · ${n}<br>confidence ${v.toFixed(3)}${v < 0.05 ? '<br>declines — passes through' : ''}`);
+      svg.appendChild(g);
+    });
+  });
+  document.getElementById('heatmap').appendChild(svg);
+})();
+
+/* ---- unseen logs strip ------------------------------------------------- */
+(function () {
+  const data = [
+    { n: 'wifi.log', v: 98.5, r: 4000 }, { n: 'fsck_apfs.log', v: 97.4, r: 903 },
+    { n: 'install.log', v: 94.6, r: 4000 }, { n: 'DiscRecording.log', v: 92.9, r: 356 },
+    { n: 'LeagueClientUx_debug.log', v: 78.5, r: 224 },
+  ];
+  const lw = 210, bw = 700, bh = 30, W = lw + bw + 60, H = data.length * bh + 30;
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'compression on unseen logs' });
+  data.forEach((d, i) => {
+    const y = i * bh, g = el('g');
+    const lab = el('text', { x: 0, y: y + bh / 2 + 4, fill: 'var(--ink-2)',
+      'font-family': 'var(--mono)', 'font-size': 12 }); lab.textContent = d.n; g.appendChild(lab);
+    g.appendChild(el('rect', { x: lw, y: y + 5, width: bw, height: bh - 12, fill: 'var(--sunken)' }));
+    g.appendChild(el('rect', { x: lw, y: y + 5, width: bw * d.v / 100, height: bh - 12,
+      fill: ramp((d.v - 70) / 30), rx: 2 }));
+    const t = el('text', { x: lw + bw * d.v / 100 + 8, y: y + bh / 2 + 4, fill: 'var(--ink)',
+      'font-family': 'var(--mono)', 'font-size': 12, 'font-weight': 600 });
+    t.textContent = d.v.toFixed(1) + '%'; g.appendChild(t);
+    hover(g, `<b>${d.n}</b><br>${N(d.r)} records · ${d.v}% removed`);
+    svg.appendChild(g);
+  });
+  const med = lw + bw * 0.946;
+  svg.appendChild(el('line', { x1: med, x2: med, y1: 0, y2: data.length * bh,
+    stroke: 'var(--warn)', 'stroke-width': 2, 'stroke-dasharray': '4 3' }));
+  const mt = el('text', { x: med, y: H - 8, 'text-anchor': 'middle', fill: 'var(--warn)',
+    'font-family': 'var(--mono)', 'font-size': 11 }); mt.textContent = 'median 94.6%';
+  svg.appendChild(mt);
+  document.getElementById('unseen').appendChild(svg);
+})();
+
+/* ---- flare table ------------------------------------------------------- */
+(function () {
+  const f = D.flare; if (!f) return;
+  const rows = [`<tr><td>Flare today</td><td>${N(f.baseline_lines_seen)} of ${N(f.total_lines)}</td>
+    <td>${N(f.baseline_tokens)}</td><td>—</td><td>—</td></tr>`];
+  for (const r of f.rows) rows.push(`<tr><td>packitless @ ${r.budget}</td>
+    <td><strong>all ${N(r.lines_seen)}</strong></td><td>${N(r.tokens)}</td>
+    <td><strong>−${(100 * (f.baseline_tokens - r.tokens) / f.baseline_tokens).toFixed(1)}%</strong></td>
+    <td>${r.patterns} patterns</td></tr>`);
+  document.getElementById('flare').innerHTML =
+    `<thead><tr><th>payload</th><th>lines the model sees</th><th>tokens</th><th>vs Flare</th><th></th></tr></thead>
+     <tbody>${rows.join('')}</tbody>`;
+})();
+
+document.getElementById('prov').innerHTML =
+  `Token counts measured with <code>${D.counter === 'anthropic' ? 'claude-sonnet-5' : 'offline heuristic'}</code>.
+   Frontier: n=8 incidents, 48 runs. Fidelity metrics are deterministic and require no API access.`;
+
+/* ---- in-browser estimator --------------------------------------------- */
+const MASKS = [[/blk_-?\d+/g, '<BLK>'], [/\b\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?/g, '<IP>'],
+  [/\b[0-9a-fA-F]{8,}\b/g, '<HEX>'], [/\/[\w.\-/]{4,}/g, '<PATH>'],
+  [/\b\d{2}:\d{2}:\d{2}(?:[.,]\d+)?\b/g, '<TIME>'], [/\b\d{4}-\d{2}-\d{2}\b/g, '<DATE>'],
+  [/\b\d+\b/g, '<NUM>']];
+const maskLine = s => MASKS.reduce((a, [re, t]) => a.replace(re, t), s);
+const estTok = s => Math.max(1, Math.round((s.match(/\w+|[^\w\s]/g) || []).length * 1.32));
+
+document.getElementById('run').addEventListener('click', () => {
+  const raw = document.getElementById('paste').value;
+  const all = raw.split('\n').filter(l => l.trim());
+  const lines = all.slice(0, 5000);
+  const out = document.getElementById('result'), verdict = document.getElementById('verdict');
+  if (lines.length < 5) { out.innerHTML = ''; verdict.textContent = 'need at least 5 lines'; return; }
+
+  const groups = new Map();
+  for (const l of lines) { const k = maskLine(l); groups.set(k, (groups.get(k) || 0) + 1); }
+  const sorted = [...groups.entries()].sort((a, b) => b[1] - a[1]);
+  const conf = Math.max(0, 1 - sorted.length / lines.length);
+  const before = estTok(lines.join('\n'));
+  const after = estTok(sorted.map(([p, c]) => `[T] x${c} ${p}`).join('\n'));
+
+  verdict.textContent = conf < 0.05 ? 'declines — passes through unchanged'
+    : conf < 0.3 ? 'marginal structure' : 'compressible';
+  out.innerHTML = `
+    <div class="stats" style="margin:0 0 16px">
+      <div class="stat"><div class="v">${conf < 0.05 ? '0%' : (100 * (before - after) / before).toFixed(1) + '%'}</div>
+        <div class="k lbl">estimated reduction</div></div>
+      <div class="stat"><div class="v">${N(sorted.length)}</div><div class="k lbl">templates</div>
+        <div class="sub">from ${N(lines.length)} lines${all.length > lines.length ? ` (capped from ${N(all.length)})` : ''}</div></div>
+      <div class="stat"><div class="v">${conf.toFixed(3)}</div><div class="k lbl">confidence</div></div>
+    </div>
+    <pre>${sorted.slice(0, 14).map(([p, c]) =>
+      `×${String(c).padStart(6)}  ${p.replace(/[<&]/g, m => ({ '<': '&lt;', '&': '&amp;' }[m])).slice(0, 110)}`).join('\n')}${
+      sorted.length > 14 ? `\n… ${N(sorted.length - 14)} more templates` : ''}</pre>
+    <p class="privacy" style="margin-top:10px">In-browser estimate using regex templating and an
+    approximate tokenizer. The CLI uses Drain and the real tokenizer, and typically finds
+    <em>fewer</em> templates than this — so treat it as a floor.</p>`;
+});
+</script>
