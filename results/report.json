@@ -604,7 +604,7 @@
       "call": "packitless --budget 600 --stats < /var/log/install.log",
       "source": "wifi.log",
       "records": 4000,
-      "tokens_before": 461391,
+      "tokens_before": 462000,
       "tokens_after": 630,
       "saved_pct": 99.9,
       "extractor": "lines",
@@ -620,9 +620,9 @@
         "model": "claude-sonnet-5",
         "input_rate_per_mtok": 3.0,
         "calls": 1000,
-        "usd_before": 1384.17,
+        "usd_before": 1386.0,
         "usd_after": 1.89,
-        "usd_saved": 1382.28,
+        "usd_saved": 1384.11,
         "saved_pct": 99.9
       }
     },
@@ -633,23 +633,27 @@
       "surface": "Any \u2014 the answer is the same everywhere",
       "call": "packitless --explain < README.md",
       "source": "README.md",
-      "records": 91,
-      "tokens_before": 2034,
-      "tokens_after": 2034,
-      "saved_pct": 0.0,
-      "extractor": "passthrough",
-      "guarantee": null,
+      "records": 108,
+      "tokens_before": 2446,
+      "tokens_after": 2968,
+      "saved_pct": -21.3,
+      "extractor": "lines",
+      "guarantee": "lossy",
       "truncated": false,
-      "patterns": 0,
-      "sections": {},
+      "patterns": 87,
+      "sections": {
+        "header": 27,
+        "patterns": 2685,
+        "verbatim": 266
+      },
       "cost": {
         "model": "claude-sonnet-5",
         "input_rate_per_mtok": 3.0,
         "calls": 1000,
-        "usd_before": 6.1,
-        "usd_after": 6.1,
-        "usd_saved": 0.0,
-        "saved_pct": 0.0
+        "usd_before": 7.34,
+        "usd_after": 8.9,
+        "usd_saved": -1.57,
+        "saved_pct": -21.3
       }
     }
   ],
@@ -758,5 +762,5 @@
       "output": 5.0
     }
   },
-  "token_cache_size": 6114
+  "token_cache_size": 6029
 }

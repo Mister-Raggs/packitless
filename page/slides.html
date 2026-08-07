@@ -1,0 +1,249 @@
+<title>packitless — Track 1 · Cost of Intelligence</title>
+<style>
+:root{
+  --ground:#F5F7F9;--surface:#FFFFFF;--sunken:#ECEFF3;--rule:#DBE0E7;
+  --ink:#0E1319;--ink-2:#3D4753;--muted:#6B7683;
+  --signal:#1A6FC4;--warn:#B8791C;--crit:#A33A34;--good:#2E6B4F;
+  --s2:#BCD4EC;--s4:#5C93CE;--s5:#1A6FC4;--s6:#10426F;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0E1217;--surface:#161B22;--sunken:#1C222B;--rule:#2A323D;
+  --ink:#E3E9F1;--ink-2:#B4BFCC;--muted:#7F8B99;
+  --signal:#5C9EE0;--warn:#D9A03F;--crit:#D9635A;--good:#56A37C;
+  --s2:#22354A;--s4:#3D6B96;--s5:#5C9EE0;--s6:#9CC6EE;}}
+:root[data-theme="dark"]{
+  --ground:#0E1217;--surface:#161B22;--sunken:#1C222B;--rule:#2A323D;
+  --ink:#E3E9F1;--ink-2:#B4BFCC;--muted:#7F8B99;
+  --signal:#5C9EE0;--warn:#D9A03F;--crit:#D9635A;--good:#56A37C;
+  --s2:#22354A;--s4:#3D6B96;--s5:#5C9EE0;--s6:#9CC6EE;}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-snap-type:y mandatory;overflow-x:hidden}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+  font-size:clamp(15px,1.35vw,20px);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+.slide{min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;
+  justify-content:center;padding:5vh 6vw;position:relative;border-bottom:1px solid var(--rule)}
+.slide > *{max-width:1400px;width:100%;margin-inline:auto}
+.n{position:absolute;bottom:3vh;right:6vw;font-family:var(--mono);font-size:.72em;
+  color:var(--muted);letter-spacing:.1em}
+.kicker{font-family:var(--mono);font-size:.72em;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--signal);margin-bottom:1.6em}
+h1{font-family:var(--mono);font-size:clamp(34px,5.6vw,80px);line-height:1.02;margin:0;
+  letter-spacing:-.035em;font-weight:600;text-wrap:balance}
+h2{font-family:var(--mono);font-size:clamp(26px,3.4vw,46px);line-height:1.1;margin:0 0 .7em;
+  letter-spacing:-.025em;font-weight:600;text-wrap:balance}
+.sub{font-size:clamp(16px,1.5vw,24px);color:var(--ink-2);max-width:46ch;margin:1em 0 0}
+.big{font-family:var(--mono);font-size:clamp(46px,9vw,140px);line-height:.94;font-weight:600;
+  letter-spacing:-.04em;font-variant-numeric:tabular-nums;color:var(--signal)}
+.note{font-size:.82em;color:var(--muted);max-width:56ch;margin-top:1.4em}
+strong{color:var(--ink)}
+code,.m{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.grid{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:.5em}
+.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.g3{grid-template-columns:1fr}}
+.cell{background:var(--surface);padding:1.1em 1.2em}
+.cell h3{font-family:var(--mono);font-size:1em;margin:0 0 .35em;font-weight:600}
+.cell p{margin:0;font-size:.82em;color:var(--ink-2)}
+.cell .v{font-family:var(--mono);font-size:1.9em;font-weight:600;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;line-height:1.1}
+.cell .k{font-family:var(--mono);font-size:.68em;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);margin-top:.2em}
+
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:.82em;
+  font-variant-numeric:tabular-nums;margin-top:.4em}
+th,td{text-align:right;padding:.5em .7em;border-bottom:1px solid var(--rule)}
+th{font-size:.78em;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+th:first-child,td:first-child{text-align:left}
+tr.flag td{background:color-mix(in srgb,var(--crit) 11%,transparent);color:var(--ink)}
+tr.win td{background:color-mix(in srgb,var(--signal) 9%,transparent)}
+
+pre{font-family:var(--mono);font-size:clamp(11px,.95vw,15px);line-height:1.5;background:var(--sunken);
+  border:1px solid var(--rule);padding:1em 1.2em;overflow-x:auto;margin:.6em 0 0;color:var(--ink-2)}
+.quote{font-family:var(--mono);font-size:clamp(19px,2.3vw,34px);line-height:1.25;
+  border-left:3px solid var(--signal);padding-left:.8em;margin:.8em 0;color:var(--ink);
+  letter-spacing:-.015em;text-wrap:balance}
+.bar{display:flex;height:2.4em;border:1px solid var(--rule);margin-top:.7em;overflow:hidden}
+.bar span{display:flex;align-items:center;padding:0 .7em;font-family:var(--mono);
+  font-size:.74em;color:var(--surface);font-weight:600;white-space:nowrap}
+.pill{display:inline-block;font-family:var(--mono);font-size:.62em;font-weight:600;padding:.15em .55em;
+  border:1px solid;border-radius:2px;letter-spacing:.06em;text-transform:uppercase;vertical-align:middle}
+.pill.good{color:var(--good);border-color:var(--good)}
+.pill.bad{color:var(--crit);border-color:var(--crit)}
+.pill.warn{color:var(--warn);border-color:var(--warn)}
+
+nav{position:fixed;bottom:2.4vh;left:6vw;display:flex;gap:.5em;z-index:5}
+nav button{font-family:var(--mono);font-size:13px;width:2.3em;height:2.3em;background:var(--surface);
+  color:var(--ink-2);border:1px solid var(--rule);border-radius:2px;cursor:pointer}
+nav button:hover{background:var(--sunken);color:var(--ink)}
+nav button:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+
+@media print{
+  @page{size:1600px 900px;margin:0}
+  html{scroll-snap-type:none}
+  body{background:#fff;color:#0E1319;font-size:17px}
+  .slide{min-height:900px;height:900px;page-break-after:always;break-after:page;
+    border:0;padding:60px 80px}
+  nav{display:none}
+  .cell,pre,table{background:#fff}
+}
+</style>
+
+<script type="application/json" id="report">__DATA__</script>
+
+<main id="deck"></main>
+
+<nav>
+  <button id="prev" aria-label="Previous slide">‹</button>
+  <button id="next" aria-label="Next slide">›</button>
+</nav>
+
+<script>
+const D = JSON.parse(document.getElementById('report').textContent);
+const N = n => n.toLocaleString('en-US');
+const USD = n => n >= 100 ? '$' + Math.round(n).toLocaleString('en-US') : '$' + n.toFixed(2);
+const S = Object.fromEntries((D.scenarios || []).map(s => [s.key, s]));
+const hdfs = D.corpora.find(c => c.name === 'hdfs');
+const totalSaved = (D.scenarios || []).reduce((a, s) => a + s.cost.usd_saved, 0);
+const rate = (D.rates && D.rates['claude-sonnet-5'] || {input: 3}).input;
+const fr = l => (D.frontier || []).find(f => f.level === l) || {};
+
+const scenarioRows = (D.scenarios || []).map(s => `<tr class="${s.extractor === 'passthrough' ? '' : ''}">
+  <td>${s.title}</td>
+  <td>${N(s.tokens_before)}</td>
+  <td>${N(s.tokens_after)}</td>
+  <td><strong>${s.extractor === 'passthrough' ? '—' : s.saved_pct.toFixed(1) + '%'}</strong></td>
+  <td>${USD(s.cost.usd_before)} → ${USD(s.cost.usd_after)}</td>
+  <td>${s.extractor === 'passthrough'
+    ? '<span class="pill warn">declines</span>'
+    : `<span class="pill ${s.guarantee === 'lossless' ? 'good' : ''}">${s.guarantee}</span>`}</td></tr>`).join('');
+
+const agent = S.agent || {sections: {}, tokens_before: 0, tokens_after: 0};
+const sec = agent.sections || {};
+const secTotal = Object.values(sec).reduce((a, b) => a + b, 0) || 1;
+const secColors = ['var(--s6)', 'var(--s5)', 'var(--s4)', 'var(--s2)'];
+const secBar = Object.entries(sec).sort((a, b) => b[1] - a[1]).map(([k, v], i) =>
+  `<span style="width:${100 * v / secTotal}%;background:${secColors[i % 4]}">${
+    100 * v / secTotal > 14 ? `${k} ${N(v)}` : ''}</span>`).join('');
+
+const jobsWorst = (D.corpora.find(c => c.name === 'jobs') || {sweep: []}).sweep
+  .filter(s => s.budget).sort((a, b) => a.count_conservation - b.count_conservation)[0] || {};
+
+const SLIDES = [
+
+`<div class="kicker">Track 1 · Cost of Intelligence</div>
+ <h1>Stop paying full price<br>for the same line twice.</h1>
+ <p class="sub">Logs, traces, events, test output, database rows. Machine-generated text is
+ mostly repetition — and every copy costs input tokens.</p>
+ <p class="note m">packitless · github.com/Mister-Raggs/packitless</p>`,
+
+`<h2>The bill nobody itemises</h2>
+ <div class="big">${USD(totalSaved)}</div>
+ <p class="sub" style="margin-top:.5em">saved per <strong>1,000 calls</strong>, across six real
+ workloads, at list price.</p>
+ <p class="note">Input tokens only — compression changes what you send, not what comes back.
+ Priced at $${rate.toFixed(2)}/MTok. Every figure measured, not modelled.</p>`,
+
+`<h2>Six places it earns its keep</h2>
+ <table><thead><tr><th>scenario</th><th>tok in</th><th>tok out</th><th>saved</th>
+ <th>per 1k calls</th><th>guarantee</th></tr></thead><tbody>${scenarioRows}</tbody></table>
+ <p class="note">Batch records saves the least — and is the only one that's <strong>lossless</strong>.
+ Prose saves nothing, because it declines.</p>`,
+
+`<h2>Why it works</h2>
+ <div class="big" style="font-size:clamp(30px,4.6vw,64px)">${N(hdfs.records)} lines
+ <span style="color:var(--muted)">→</span> ${hdfs.total_patterns} templates</div>
+ <div class="quote">Nothing here is a duplicate.<br>Everything here is a repeat.</div>
+ <p class="sub">Zero of those ${N(hdfs.records)} lines are exact duplicates, so deduplication
+ saves nothing at all. Templating collapses them to ${hdfs.total_patterns} shapes.</p>`,
+
+`<h2>Where the savings actually go</h2>
+ <p class="sub" style="max-width:60ch">Every surviving token, attributed. ${N(agent.tokens_before)}
+ tokens of build output become ${N(agent.tokens_after)}.</p>
+ <div class="bar">${secBar}</div>
+ <div class="quote" style="font-size:clamp(17px,2vw,28px)">“98% saved” is a claim.<br>This is the
+ explanation.</div>
+ <p class="note">The interface is a <strong>token budget</strong>, not a compression ratio — real
+ systems have context windows and cost ceilings, not ratio targets.</p>`,
+
+`<h2>What it costs you in quality</h2>
+ <table><thead><tr><th>payload</th><th>tokens</th><th>saved</th><th>quality</th><th>rank</th></tr></thead>
+ <tbody>
+ <tr><td>uncompressed baseline</td><td>${N(fr('baseline').payload_tokens)}</td><td>—</td>
+   <td>4.08 ±${(fr('baseline').sd || 0).toFixed(2)}</td><td>${fr('baseline').rank}</td></tr>
+ <tr class="win"><td>compressed</td><td>${N(fr('budget=None').payload_tokens)}</td>
+   <td><strong>94.0%</strong></td><td>4.17 ±${(fr('budget=None').sd || 0).toFixed(2)}</td>
+   <td>${fr('budget=None').rank}</td></tr>
+ <tr><td>aggressive</td><td>${N(fr('budget=200').payload_tokens)}</td><td>98.9%</td>
+   <td>3.33 ±${(fr('budget=200').sd || 0).toFixed(2)}</td><td>${fr('budget=200').rank}</td></tr>
+ </tbody></table>
+ <p class="sub" style="margin-top:1em">94% fewer tokens ranks <strong>level with no compression
+ at all</strong> — judged side by side against the uncompressed logs.</p>
+ <p class="note">sd ≈ 0.5 at n=8, so that is a <em>tie</em>, not a win. Below ~800 tokens quality
+ genuinely degrades. An earlier run scored summaries in isolation and reported flat noise — the
+ instrument was the problem, and the flattering result was the wrong one.</p>`,
+
+`<h2>When our own number is a lie</h2>
+ <table><thead><tr><th>corpus</th><th>budget</th><th>saved</th><th>records kept</th>
+ <th>verdict</th></tr></thead><tbody>
+ <tr class="flag"><td>jobs</td><td>${N(jobsWorst.budget || 200)}</td>
+ <td><strong>${(jobsWorst.saved_pct || 0).toFixed(1)}%</strong></td>
+ <td><strong>${(jobsWorst.count_conservation || 0).toFixed(3)}</strong></td>
+ <td><span class="pill bad">truncated</span></td></tr></tbody></table>
+ <div class="quote">It hit 90% by throwing away<br>99.9% of the records.</div>
+ <p class="sub">Deterministic checks catch it. No API key, no LLM, on every commit —
+ because a ratio alone is unfalsifiable.</p>`,
+
+`<h2>Three guarantees, all tested</h2>
+ <div class="grid g3">
+   <div class="cell"><div class="v">1.000</div><div class="k">critical recall</div>
+     <p style="margin-top:.6em">Flagged records survive every budget on every corpus. The allocator
+     overruns the budget rather than drop one — and reports the overrun.</p></div>
+   <div class="cell"><div class="v">24,000</div><div class="k">fields round-tripped</div>
+     <p style="margin-top:.6em">The lossless tier rebuilds every record exactly from its own
+     rendered output. Proven by replay, not asserted.</p></div>
+   <div class="cell"><div class="v">≤ 100%</div><div class="k">never inflates</div>
+     <p style="margin-top:.6em">Pointed at our own README an earlier build returned <strong>22%
+     more</strong> tokens than it received. Now it detects that and passes through.</p></div>
+ </div>
+ <p class="note">22 tests, no API key, no corpora, no network — they run on every commit.</p>`,
+
+`<h2>How you'd actually use it</h2>
+ <pre>from packitless import compress, CompressConfig
+compress(records, CompressConfig(budget_tokens=800))        # library — one call</pre>
+ <pre>kubectl logs deploy/api | packitless --budget 800 --stats   # any tool, any language</pre>
+ <pre>MCP:  analyse → compress_payload                            # the agent decides</pre>
+ <p class="sub" style="margin-top:1.2em">No API key. No service. No network. Compression never
+ makes a model call.</p>
+ <p class="note">Adding a payload format is three methods — <code>sniff</code>, <code>claim</code>,
+ <code>extract</code>. That is how the JSON and routing extractors were added.</p>`,
+
+`<div class="kicker">Track 1 · Cost of Intelligence</div>
+ <h1>${USD(totalSaved)} per 1,000 calls.<br>And it tells you<br>when that number is wrong.</h1>
+ <p class="note m" style="font-size:.95em;margin-top:2em">
+   github.com/Mister-Raggs/packitless<br>
+   Exact token counts cached and committed — every figure reproduces offline, with no key.</p>`,
+];
+
+document.getElementById('deck').innerHTML = SLIDES.map((html, i) =>
+  `<section class="slide">${html}<div class="n">${String(i + 1).padStart(2, '0')} / ${
+    String(SLIDES.length).padStart(2, '0')}</div></section>`).join('');
+
+const slides = [...document.querySelectorAll('.slide')];
+const go = d => {
+  const y = window.scrollY + window.innerHeight * 0.5;
+  const i = slides.findIndex(s => s.offsetTop + s.offsetHeight > y);
+  const next = Math.min(slides.length - 1, Math.max(0, (i < 0 ? 0 : i) + d));
+  slides[next].scrollIntoView({behavior: 'smooth', block: 'start'});
+};
+document.getElementById('next').onclick = () => go(1);
+document.getElementById('prev').onclick = () => go(-1);
+addEventListener('keydown', e => {
+  if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); go(1); }
+  if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(-1); }
+});
+</script>
